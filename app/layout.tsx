@@ -44,7 +44,7 @@ export default function RootLayout({
           <main className="flex-1 flex">
             {children}
           </main>
-          <footer className="flex justify-center">
+          <footer className="flex justify-center font-[Inter]">
             <h4>Copyright</h4>
           </footer>
         </div>
