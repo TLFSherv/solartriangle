@@ -1,18 +1,21 @@
-import Button from "./Button"
+import Image from "next/image"
+import graph from "../../public/graph-sm.png"
+
 export default function Benefits() {
     return (
-        <div className='space-y-18 mx-4 flex flex-col items-center'>
-            <div className='flex mx-4 gap-4 text-center'>
-                <div className='text-4xl/12 flex-1'>
-                    <p>
-                        THE BENEFITS THE BENEFITS THE BENEFITS
-                    </p>
-                </div>
-                <div className='text-4xl/12 flex-1 my-auto'>
-                    <p>IMAGE</p>
-                </div>
-            </div>
-            <Button />
+        <div className='flex flex-col-reverse sm:flex-row mx-4 gap-8 justify-center items-center'>
+            <ul className="space-y-2 text-md sm:text-lg font-[Inter] font-light list-disc list-inside">
+                <li>Accurately predict future power generation</li>
+                <li>Optimise your solar system</li>
+                <li>Keep a history of past performance</li>
+                <li>Analyse future performance</li>
+            </ul>
+            <Image
+                src={graph}
+                alt="graph"
+                width={250}
+                height={306}
+            />
         </div>
     )
 }

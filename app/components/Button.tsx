@@ -1,10 +1,10 @@
 
-export default function Button() {
+export default function Button(props: { text: string }) {
     return (
         <button
             type="button"
-            className="flex-1 max-w-xs py-3 px-6 rounded-2xl bg-[#444444] cursor-pointer tracking-wider">
-            BUTTON
+            className="flex-1 py-3 px-6 rounded-2xl bg-linear-[#DD6B19,#F0662A] cursor-pointer tracking-wider w-[200px]">
+            {props.text}
         </button>
     )
 }
