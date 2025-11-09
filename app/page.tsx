@@ -7,7 +7,7 @@ import dataImg from "../public/data-sm.svg"
 
 export default function Home() {
   return (
-    <div className="flex-1 flex flex-col space-y-30 sm:space-y-40 my-20 mx-auto">
+    <div className="flex-1 flex flex-col space-y-30 sm:space-y-40 my-20">
       {/* Hero Section */}
       <div className='space-y-14 mx-8'>
         <h1 className="text-5xl/14 sm:text-7xl/24 text-center tracking-wider font-[Space_Grotesk] text-[#F0662A]">
