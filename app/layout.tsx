@@ -23,31 +23,27 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet"></link>
       </head>
-      <body className="max-w-6xl mx-auto">
-        <header>
-          <div className="flex justify-between items-center mx-5 my-2">
-            <Image
-              src={logo}
-              alt="logo"
-              width={120}
-              height={65}
-            />
-            <Link
-              href={"/"}
-              className="font-[Darker_Grotesque] text-lg">
-              Account
-            </Link>
-          </div>
+      <body className="flex flex-col max-w-6xl min-h-screen mx-auto">
+        <header className="flex justify-between items-center mx-5 my-2">
+          <Image
+            src={logo}
+            alt="logo"
+            width={120}
+            height={65}
+          />
+          <Link
+            href={"/login"}
+            className="font-[Darker_Grotesque] text-lg">
+            Account
+          </Link>
         </header>
-        <div className="flex flex-col min-h-screen my-8">
-          <Navbar />
-          <main className="flex-1 flex">
-            {children}
-          </main>
-          <footer className="flex justify-center font-[Inter]">
-            <h4>Copyright</h4>
-          </footer>
-        </div>
+        <Navbar />
+        <main className="flex-1 flex">
+          {children}
+        </main>
+        <footer className="flex justify-center font-[Inter]">
+          <h4>Copyright</h4>
+        </footer>
       </body>
     </html>
   );
