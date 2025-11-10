@@ -32,7 +32,7 @@ export default function Navbar() {
                 <ul className='flex justify-evenly font-[Darker_Grotesque] text-2xl tracking-wider'>
                     <Link href={"/"}><li>Home</li></Link>
                     <Link href={""}><li>Calculator</li></Link>
-                    <Link href={""}><li>Learn</li></Link>
+                    <Link href={"/learn"}><li>Learn</li></Link>
                     <Link href={""}><li>Research</li></Link>
                 </ul>
             }

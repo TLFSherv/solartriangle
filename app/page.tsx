@@ -17,7 +17,11 @@ export default function Home() {
           The solar power calculator accurately predicts the future power generation of your solar system.
         </h2>
         <div className='flex justify-center text-xl font-light font-[Inter]'>
-          <Link href={"/calculator"}><Button text={"Try Calculator"} style="bg-linear-[#DD6B19,#F0662A] w-xs" /></Link>
+          <Link href={"/calculator"}>
+            <Button
+              text={"Try Calculator"}
+              style="bg-linear-[#DD6B19,#F0662A] w-xs" />
+          </Link>
         </div>
       </div>
       {/* Benefits Section */}
@@ -44,7 +48,11 @@ export default function Home() {
             generation of your current or future solar system.
           </p>
           <div className="flex justify-center text-lg font-light font-[Inter]">
-            <Link href={"/"}><Button text="Learn more" style="bg-linear-[#DD6B19,#F0662A] w-xs" /></Link>
+            <Link href={"/learn"}>
+              <Button
+                text="Learn more"
+                style="bg-linear-[#DD6B19,#F0662A] w-xs" />
+            </Link>
           </div>
         </div>
       </div>
