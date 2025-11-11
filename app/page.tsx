@@ -32,10 +32,9 @@ export default function Home() {
           <li>Keep a history of past performance</li>
           <li>Analyse future performance</li>
         </ul>
-        <picture>
-          <source media="(min-width:650px)" srcSet={graph} />
+        <div>
           <Image src={graph_lg} alt="graph" />
-        </picture>
+        </div>
       </div>
       {/* Summary section */}
       <div className='flex flex-col sm:flex-row items-center mx-8 gap-6'>
