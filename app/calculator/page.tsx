@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Button from "../components/Button"
+import GoogleMap from "./components/GoogleMap"
 
 export default function Calculator() {
     return (
@@ -9,7 +10,9 @@ export default function Calculator() {
                 the power rating of the panels and the number of panels in the system.
                 The Google maps view will change to show the address of the location you enter.
             </p>
-            <div></div>
+            <div>
+                <GoogleMap />
+            </div>
             <div className="flex flex-col md:flex-row justify-center gap-8 text-center">
                 <div className="flex-1">
                     <label htmlFor="address" className="block">
