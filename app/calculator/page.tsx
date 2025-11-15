@@ -1,9 +1,8 @@
 "use client"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useState, useRef } from "react"
 import Link from "next/link"
 import Button from "../components/Button"
 import SearchableMap from "./components/SearchableMap"
-import SuggestionsBox from "./components/SuggestionsBox"
 
 export default function Calculator() {
     const [inputs, setInputs] = useState({
