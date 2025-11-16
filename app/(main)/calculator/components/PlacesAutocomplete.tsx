@@ -30,6 +30,8 @@ const PlacesAutocomplete = () => {
     // fetch auto-suggestion results
     useEffect(() => {
         if (!debouncedString) return;
+        // don't fetch again if the address has not changed
+        if (location && suggestions.length === 0) return;
         async function getAutocompleteResults(input: string) {
             if (!input) return setSuggestions([]);
 
@@ -73,13 +75,13 @@ const PlacesAutocomplete = () => {
                 className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
                 type="text"
                 autoComplete="off" />
-            {suggestions.length > 0 &&
-                <SuggestionsDropdown
-                    suggestions={suggestions}
-                    setAddress={setAddress}
-                    setSuggestions={setSuggestions}
-                    setLocation={setLocation}
-                />}
+
+            <SuggestionsDropdown
+                suggestions={suggestions}
+                setAddress={setAddress}
+                setSuggestions={setSuggestions}
+                setLocation={setLocation}
+            />
         </div>
     )
 

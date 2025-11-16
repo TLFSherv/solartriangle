@@ -38,12 +38,13 @@ export default function SuggestionsDropdown(props:
     }
 
     return (
-        <div>
-            <ul>
+        <div className="w-4/5 mt-1">
+            <ul className="text-sm divide-y divide-[#444444]">
                 {suggestions.map((s, i) => {
                     const name = s.placePrediction.text.text;
                     return (
                         <li
+                            className="cursor-pointer p-2 hover:bg-[#131314]"
                             key={i}
                             onClick={() =>
                                 selectPlace(
