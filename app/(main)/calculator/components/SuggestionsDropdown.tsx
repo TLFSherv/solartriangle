@@ -12,7 +12,7 @@ type Location = { lat: Number; lng: number; };
 export default function SuggestionsDropdown(props:
     {
         suggestions: Suggestion[],
-        setAddress: React.Dispatch<React.SetStateAction<string | undefined>>,
+        setAddress: React.Dispatch<React.SetStateAction<string>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
         setLocation: React.Dispatch<React.SetStateAction<Location | null>>
     }) {

@@ -1,4 +1,4 @@
-import Button from "../components/Button"
+import Button from "@/app/components/Button"
 export default function Learn() {
     return (
         <div className="m-6 space-y-8">

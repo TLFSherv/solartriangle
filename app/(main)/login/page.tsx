@@ -1,4 +1,4 @@
-import Button from "../components/Button"
+import Button from "@/app/components/Button"
 export default function Login() {
     return (
         <div className="mx-auto sm:text-xl font-[Inter] font-light space-y-16">

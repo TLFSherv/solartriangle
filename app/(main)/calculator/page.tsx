@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useRef } from "react"
 import Link from "next/link"
-import Button from "../components/Button"
+import Button from "@/app/components/Button"
 import SearchableMap from "./components/SearchableMap"
 
 export default function Calculator() {

@@ -9,7 +9,7 @@ type Suggestion = {
     };
 };
 const PlacesAutocomplete = () => {
-    const [address, setAddress] = useState<string | undefined>();
+    const [address, setAddress] = useState<string>('');
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [location, setLocation] =
@@ -72,7 +72,7 @@ const PlacesAutocomplete = () => {
                 name="address"
                 className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
                 type="text"
-                autoComplete="false" />
+                autoComplete="off" />
             {suggestions.length > 0 &&
                 <SuggestionsDropdown
                     suggestions={suggestions}

@@ -1,8 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
-import circles_md from "../../../public/circles-md.png"
-import circles_sm from "../../../public/circles-sm.png"
-import circles from "../../../public/circles.png"
+import circles_md from "@/public/circles-md.png"
+import circles_sm from "@/public/circles-sm.png"
+import circles from "@/public/circles.png"
 
 export default function ContentList() {
     return (

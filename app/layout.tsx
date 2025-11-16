@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
 import Link from 'next/link'
 import Image from 'next/image'
 import logo from '../public/logo.png'
@@ -37,8 +35,7 @@ export default function RootLayout({
             Account
           </Link>
         </header>
-        <Navbar />
-        <main className="flex-1 flex">
+        <main className="flex-1">
           {children}
         </main>
         <footer className="flex justify-center font-[Inter] font-light">
