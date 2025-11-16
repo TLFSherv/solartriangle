@@ -7,22 +7,23 @@ type Suggestion = {
     };
 };
 
-type Location = { lat: Number; lng: number; };
+type Location = { lat: number; lng: number; };
 
 export default function SuggestionsDropdown(props:
     {
         suggestions: Suggestion[],
         setAddress: React.Dispatch<React.SetStateAction<string>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
-        setLocation: React.Dispatch<React.SetStateAction<Location | null>>
+        setLocation: React.Dispatch<React.SetStateAction<Location | null>>,
+        setIsActive: React.Dispatch<React.SetStateAction<boolean>>,
     }) {
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-    const { suggestions, setAddress, setSuggestions, setLocation } = props;
+    const { suggestions, setAddress, setSuggestions, setLocation, setIsActive } = props;
 
     async function selectPlace(placeId: string, text: string) {
         setAddress(text);
         setSuggestions([]);
-
+        setIsActive(false);
         const response = await fetch(
             `https://places.googleapis.com/v1/places/${placeId}?fields=location&key=${apiKey}`
         );
@@ -32,7 +33,7 @@ export default function SuggestionsDropdown(props:
 
         const newLoc = {
             lat: data.location.latitude,
-            lng: data.location.logitude
+            lng: data.location.longitude
         };
         setLocation(newLoc);
     }

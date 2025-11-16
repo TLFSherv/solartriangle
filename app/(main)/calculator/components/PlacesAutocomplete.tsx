@@ -12,26 +12,36 @@ const PlacesAutocomplete = () => {
     const [address, setAddress] = useState<string>('');
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    const [location, setLocation] =
-        useState<{ lat: Number; lng: number } | null>(null);
+    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [isActive, setIsActive] = useState(false);
+    const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
+
+
 
     useEffect(() => {
         // debouce search string
-        if (!address || address.trim().length === 0) return;
+        if (!address || address.trim().length === 0
+            || address === debouncedString) return;
 
         const timeoutId = setTimeout(() => {
             setDebouncedString(address);
         }, 300);
 
         return () => { clearTimeout(timeoutId); }
-    }, [address])
+    }, [address]);
+
+    useEffect(() => {
+        // Pan map using the map instance
+        if (location) {
+            map?.panTo(location);
+            map?.setZoom(18);
+        }
+    }, [location])
 
     // fetch auto-suggestion results
     useEffect(() => {
-        if (!debouncedString) return;
-        // don't fetch again if the address has not changed
-        if (location && suggestions.length === 0) return;
+        if (!debouncedString || !isActive) return;
         async function getAutocompleteResults(input: string) {
             if (!input) return setSuggestions([]);
 
@@ -61,28 +71,34 @@ const PlacesAutocomplete = () => {
             setSuggestions(data.suggestions || []);
         }
         getAutocompleteResults(debouncedString);
-    }, [debouncedString])
-
+    }, [debouncedString]);
+    console.log(location);
     return (
-        <div className="mt-4 flex flex-col justify-center items-center">
-            <label htmlFor="address" className="block">
-                address
-            </label>
-            <input
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                name="address"
-                className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
-                type="text"
-                autoComplete="off" />
-
-            <SuggestionsDropdown
-                suggestions={suggestions}
-                setAddress={setAddress}
-                setSuggestions={setSuggestions}
-                setLocation={setLocation}
-            />
-        </div>
+        <>
+            <AdvancedMarker key={address} position={location} />
+            <div className="mt-4 flex flex-col justify-center items-center">
+                <label htmlFor="address" className="block">
+                    address
+                </label>
+                <input
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    onFocus={() => setIsActive(true)}
+                    name="address"
+                    className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
+                    type="text"
+                    autoComplete="off" />
+                {isActive && suggestions.length > 0 && (
+                    <SuggestionsDropdown
+                        suggestions={suggestions}
+                        setAddress={setAddress}
+                        setSuggestions={setSuggestions}
+                        setLocation={setLocation}
+                        setIsActive={setIsActive}
+                    />
+                )}
+            </div>
+        </>
     )
 
 };
