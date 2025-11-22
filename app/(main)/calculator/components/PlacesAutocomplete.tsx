@@ -74,18 +74,19 @@ const PlacesAutocomplete = () => {
     return (
         <>
             <AdvancedMarker key={address} position={location} />
-            <div className="mt-18 flex flex-col justify-center items-center max-w-xl mx-auto">
-                <label htmlFor="address" className="block">
-                    Address
+            <div className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
+                <label className='space-x-2 w-full'>
+                    <span className='text-sm'>Address:</span>
+                    <input
+                        value={address}
+                        placeholder='5 Paget ...'
+                        onChange={e => setAddress(e.target.value)}
+                        onFocus={() => setIsActive(true)}
+                        name="address"
+                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
+                        type="text"
+                        autoComplete="off" />
                 </label>
-                <input
-                    value={address}
-                    onChange={e => setAddress(e.target.value)}
-                    onFocus={() => setIsActive(true)}
-                    name="address"
-                    className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
-                    type="text"
-                    autoComplete="off" />
                 {isActive && suggestions.length > 0 && (
                     <SuggestionsDropdown
                         suggestions={suggestions}

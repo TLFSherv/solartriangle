@@ -9,6 +9,8 @@ export default memo(function SearchableMap() {
         <APIProvider
             apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY as string}
             onLoad={() => console.log('Maps API has loaded.')}>
+            <PlacesAutocomplete />
+            <DrawingTool />
             <Map
                 style={{ width: '100%', height: '400px' }}
                 defaultZoom={13}
@@ -17,9 +19,8 @@ export default memo(function SearchableMap() {
                 onCameraChanged={(ev: MapCameraChangedEvent) =>
                     console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                 }>
-                <DrawingTool />
             </Map>
-            <PlacesAutocomplete />
+
         </APIProvider>
     )
 });

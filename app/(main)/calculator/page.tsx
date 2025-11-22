@@ -1,6 +1,5 @@
 "use client"
-import React, { useState, useRef } from "react"
-import Link from "next/link"
+import React, { useState } from "react"
 import Button from "@/app/components/Button"
 import SearchableMap from "./components/SearchableMap"
 
@@ -17,37 +16,37 @@ export default function Calculator() {
     };
 
     return (
-        <div className="font-[Inter] font-light m-8 sm:m-12 space-y-16">
+        <div className="font-[Inter] font-light m-8 sm:m-8 space-y-10">
             <p className="text-lg">
-                Welcome to the easiest calculator you’ll ever use, enter you address,
-                the power rating of the panels and the number of panels in the system.
-                The Google maps view will change to show the address of the location you enter.
+                Enter your address in the address field below to show your homes roof on the map.
+                Then add shapes on the map, and select the shape to show the area of your roof.
+                Finally enter the power rating of the panels, and specify the number of panels.
             </p>
             <div>
                 <SearchableMap />
             </div>
-            <div className="flex flex-col md:flex-row justify-center gap-8 text-center max-w-xl mx-auto">
+            <div className="flex flex-col justify-center gap-8 text-center max-w-xl mx-auto">
                 <div className="flex-1">
-                    <label htmlFor="capacity" className="block">
+                    <label htmlFor="capacity" className="block text-sm">
                         Solar capacity
                     </label>
                     <input
                         name="capacity"
                         value={inputs.capacity}
                         onChange={e => onChange(e)}
-                        className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
+                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
                         type="number"
                         autoComplete="false" />
                 </div>
                 <div className="flex-1">
-                    <label htmlFor="quantity" className="block">
+                    <label htmlFor="quantity" className="block text-sm">
                         Panel quantity
                     </label>
                     <input
                         name="quantity"
                         value={inputs.quantity}
                         onChange={e => onChange(e)}
-                        className="py-1 px-2 border-2 border-[#444444] rounded-md w-4/5"
+                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
                         type="number"
                         autoComplete="false" />
                 </div>
