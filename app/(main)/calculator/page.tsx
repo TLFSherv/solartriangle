@@ -26,10 +26,10 @@ export default function Calculator() {
             <div>
                 <SearchableMap />
             </div>
-            <div className="flex flex-col md:flex-row justify-center gap-8 text-center">
+            <div className="flex flex-col md:flex-row justify-center gap-8 text-center max-w-xl mx-auto">
                 <div className="flex-1">
                     <label htmlFor="capacity" className="block">
-                        solar capacity
+                        Solar capacity
                     </label>
                     <input
                         name="capacity"
@@ -41,7 +41,7 @@ export default function Calculator() {
                 </div>
                 <div className="flex-1">
                     <label htmlFor="quantity" className="block">
-                        panel quantity
+                        Panel quantity
                     </label>
                     <input
                         name="quantity"

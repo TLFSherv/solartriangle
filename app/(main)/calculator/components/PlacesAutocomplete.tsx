@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
 
@@ -16,8 +16,6 @@ const PlacesAutocomplete = () => {
     const [isActive, setIsActive] = useState(false);
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-
-
 
     useEffect(() => {
         // debouce search string
@@ -76,9 +74,9 @@ const PlacesAutocomplete = () => {
     return (
         <>
             <AdvancedMarker key={address} position={location} />
-            <div className="mt-4 flex flex-col justify-center items-center">
+            <div className="mt-18 flex flex-col justify-center items-center max-w-xl mx-auto">
                 <label htmlFor="address" className="block">
-                    address
+                    Address
                 </label>
                 <input
                     value={address}

@@ -2,6 +2,7 @@
 import { memo } from 'react'
 import { APIProvider, Map, MapCameraChangedEvent } from '@vis.gl/react-google-maps';
 import PlacesAutocomplete from './PlacesAutocomplete';
+import DrawingTool from './DrawingTool';
 
 export default memo(function SearchableMap() {
     return (
@@ -16,6 +17,7 @@ export default memo(function SearchableMap() {
                 onCameraChanged={(ev: MapCameraChangedEvent) =>
                     console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                 }>
+                <DrawingTool />
             </Map>
             <PlacesAutocomplete />
         </APIProvider>
