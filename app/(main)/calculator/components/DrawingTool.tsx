@@ -3,30 +3,12 @@ import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../../public/shapes.png'
 import erase from '../../../../public/eraser.png'
-
-export function createRectanglePoints(
-    center: (google.maps.LatLng | undefined),
-    width: number,
-    height: number) {
-
-    if (!center) return;
-    const earth = 6378137; // radius of Earth
-
-    const dLat = (height / 2) / earth;
-    const dLng = (width / 2) / (earth * Math.cos(center.lat() * Math.PI / 180));
-
-    return [
-        { lat: center.lat() + dLat * 180 / Math.PI, lng: center.lng() - dLng * 180 / Math.PI }, // top-left
-        { lat: center.lat() + dLat * 180 / Math.PI, lng: center.lng() + dLng * 180 / Math.PI }, // top-right
-        { lat: center.lat() - dLat * 180 / Math.PI, lng: center.lng() + dLng * 180 / Math.PI }, // bottom-right
-        { lat: center.lat() - dLat * 180 / Math.PI, lng: center.lng() - dLng * 180 / Math.PI }, // bottom-left
-    ];
-}
+import { createRectanglePoints, computePolygonAzimuth } from '../lib/geometryTool'
 
 export default function DrawingTool() {
     const map = useMap();
     const [polygons, setPolygons] = useState<google.maps.Polygon[] | null>(null);
-    const [area, setArea] = useState<number>(0);
+    const [polyProps, setPolyProps] = useState<{ area: number, azimuth: number } | null>(null);
     // De-select polygon on map click
     useEffect(() => {
         if (!map) return;
@@ -72,7 +54,11 @@ export default function DrawingTool() {
             resetPolygonStrokes();
             poly.setOptions({ strokeColor: "#F0662A" });
             const a = google.maps.geometry.spherical.computeArea(poly.getPath());
-            setArea(Number(a.toFixed(2)));
+            const azimuth = computePolygonAzimuth(poly) || 0;
+            setPolyProps({
+                area: Number(a.toFixed(2)),
+                azimuth: Number(azimuth.toFixed(2))
+            });
         });
         resetPolygonStrokes();
         poly.setMap(map);
@@ -108,14 +94,25 @@ export default function DrawingTool() {
                         Erase
                     </li>
                 </ol>
-                <div className="flex flex-2 space-x-2 items-center justify-end mx-4">
-                    <label className="text-sm">Area:</label>
-                    <input
-                        className="py-1 px-2 border-1 border-[#444444] rounded-md w-1/2 max-w-xs"
-                        name="area"
-                        value={area}
-                        type="number"
-                        disabled />
+                <div className="flex justify-end flex-2 space-x-6 items-center mx-4">
+                    <div>
+                        <label className="text-sm">Area:</label>
+                        <input
+                            className="py-1 px-2 border-1 border-[#444444] w-3/4 rounded-md max-w-xs"
+                            name="area"
+                            value={polyProps?.area || 0}
+                            type="number"
+                            disabled />
+                    </div>
+                    <div>
+                        <label className="text-sm">Azimuth:</label>
+                        <input
+                            className="py-1 px-2 border-1 border-[#444444] w-3/5 rounded-md max-w-xs"
+                            name="azimuth"
+                            value={polyProps?.azimuth || 0}
+                            type="number"
+                            disabled />
+                    </div>
                 </div>
             </div>
             <div className="text-[10px]">

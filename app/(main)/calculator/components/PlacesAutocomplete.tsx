@@ -70,7 +70,7 @@ const PlacesAutocomplete = () => {
         }
         getAutocompleteResults(debouncedString);
     }, [debouncedString]);
-    console.log(location);
+
     return (
         <>
             <AdvancedMarker key={address} position={location} />
