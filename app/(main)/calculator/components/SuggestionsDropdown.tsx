@@ -7,21 +7,27 @@ type Suggestion = {
     };
 };
 
-type Location = { lat: number; lng: number; };
+type FormInputs = {
+    address: string;
+    location: { lat: number; lng: number } | null;
+    area: number;
+    azimuth: number;
+    capacity: number;
+    quantity: number
+}
 
 export default function SuggestionsDropdown(props:
     {
         suggestions: Suggestion[],
-        setAddress: React.Dispatch<React.SetStateAction<string>>,
+        inputs: FormInputs,
+        setInputs: React.Dispatch<React.SetStateAction<FormInputs>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
-        setLocation: React.Dispatch<React.SetStateAction<Location | null>>,
         setIsActive: React.Dispatch<React.SetStateAction<boolean>>,
     }) {
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-    const { suggestions, setAddress, setSuggestions, setLocation, setIsActive } = props;
+    const { inputs, setInputs, suggestions, setSuggestions, setIsActive } = props;
 
     async function selectPlace(placeId: string, text: string) {
-        setAddress(text);
         setSuggestions([]);
         setIsActive(false);
         const response = await fetch(
@@ -35,7 +41,7 @@ export default function SuggestionsDropdown(props:
             lat: data.location.latitude,
             lng: data.location.longitude
         };
-        setLocation(newLoc);
+        setInputs({ ...inputs, ['address']: text, ['location']: newLoc });
     }
 
     return (
@@ -51,8 +57,8 @@ export default function SuggestionsDropdown(props:
                                 selectPlace(
                                     s.placePrediction.placeId,
                                     s.placePrediction.text.text
-                                )
-                            }>{name}</li>
+                                )}
+                        >{name}</li>
                     );
                 })}
             </ul>

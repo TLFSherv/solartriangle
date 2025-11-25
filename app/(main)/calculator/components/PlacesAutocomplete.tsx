@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
 
@@ -8,12 +8,26 @@ type Suggestion = {
         text: { text: string };
     };
 };
-const PlacesAutocomplete = () => {
-    const [address, setAddress] = useState<string>('');
+
+type FormInputs = {
+    address: string;
+    location: { lat: number; lng: number } | null;
+    area: number;
+    azimuth: number;
+    capacity: number;
+    quantity: number
+}
+
+const PlacesAutocomplete = (props:
+    {
+        inputs: FormInputs,
+        setInputs: React.Dispatch<React.SetStateAction<FormInputs>>,
+        handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    }) => {
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [isActive, setIsActive] = useState(false);
+    const { address, location } = props.inputs;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
 
@@ -80,7 +94,7 @@ const PlacesAutocomplete = () => {
                     <input
                         value={address}
                         placeholder='5 Paget ...'
-                        onChange={e => setAddress(e.target.value)}
+                        onChange={props.handleChange}
                         onFocus={() => setIsActive(true)}
                         name="address"
                         className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
@@ -90,9 +104,9 @@ const PlacesAutocomplete = () => {
                 {isActive && suggestions.length > 0 && (
                     <SuggestionsDropdown
                         suggestions={suggestions}
-                        setAddress={setAddress}
+                        inputs={props.inputs}
+                        setInputs={props.setInputs}
                         setSuggestions={setSuggestions}
-                        setLocation={setLocation}
                         setIsActive={setIsActive}
                     />
                 )}

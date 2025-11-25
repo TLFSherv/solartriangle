@@ -1,16 +1,13 @@
-"use client"
-import { memo } from 'react'
-import { APIProvider, Map, MapCameraChangedEvent } from '@vis.gl/react-google-maps';
-import PlacesAutocomplete from './PlacesAutocomplete';
-import DrawingTool from './DrawingTool';
+import React from "react";
+import { Map, MapCameraChangedEvent, APIProvider } from '@vis.gl/react-google-maps';
 
-export default memo(function SearchableMap() {
+export default function SearchableMap({ children }:
+    { children: React.ReactNode }) {
     return (
         <APIProvider
             apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY as string}
             onLoad={() => console.log('Maps API has loaded.')}>
-            <PlacesAutocomplete />
-            <DrawingTool />
+            {children}
             <Map
                 style={{ width: '100%', height: '400px' }}
                 defaultZoom={13}
@@ -20,7 +17,6 @@ export default memo(function SearchableMap() {
                     console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                 }>
             </Map>
-
         </APIProvider>
     )
-});
+}

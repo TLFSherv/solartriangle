@@ -5,16 +5,28 @@ import shapes from '../../../../public/shapes.png'
 import erase from '../../../../public/eraser.png'
 import { createRectanglePoints, computePolygonAzimuth } from '../lib/geometryTool'
 
-export default function DrawingTool() {
+type FormInputs = {
+    address: string;
+    location: { lat: number; lng: number } | null;
+    area: number;
+    azimuth: number;
+    capacity: number;
+    quantity: number
+}
+
+export default function DrawingTool(props: {
+    inputs: FormInputs,
+    setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
+}) {
     const map = useMap();
     const [polygons, setPolygons] = useState<google.maps.Polygon[] | null>(null);
-    const [polyProps, setPolyProps] = useState<{ area: number, azimuth: number } | null>(null);
-    // De-select polygon on map click
+    const { inputs, setInputs } = props;
+
+    // De-select polygon if click outside of polygon
     useEffect(() => {
-        if (!map) return;
-        const listener = map.addListener("click", resetPolygonStrokes);
-        return () => google.maps.event.removeListener(listener);
-    }, [map, polygons]);
+        document.addEventListener("mousedown", resetPolygonStrokes);
+        return () => document.removeEventListener("mousedown", resetPolygonStrokes);
+    }, [polygons]);
 
     // Delete with keyboard
     useEffect(() => {
@@ -55,9 +67,10 @@ export default function DrawingTool() {
             poly.setOptions({ strokeColor: "#F0662A" });
             const a = google.maps.geometry.spherical.computeArea(poly.getPath());
             const azimuth = computePolygonAzimuth(poly) || 0;
-            setPolyProps({
-                area: Number(a.toFixed(2)),
-                azimuth: Number(azimuth.toFixed(2))
+            setInputs({
+                ...inputs,
+                ['area']: Number(a.toFixed(2)),
+                ['azimuth']: Number(azimuth.toFixed(2))
             });
         });
         resetPolygonStrokes();
@@ -100,7 +113,7 @@ export default function DrawingTool() {
                         <input
                             className="py-1 px-2 border-1 border-[#444444] w-3/4 rounded-md max-w-xs"
                             name="area"
-                            value={polyProps?.area || 0}
+                            value={inputs.area || 0}
                             type="number"
                             disabled />
                     </div>
@@ -109,7 +122,7 @@ export default function DrawingTool() {
                         <input
                             className="py-1 px-2 border-1 border-[#444444] w-3/5 rounded-md max-w-xs"
                             name="azimuth"
-                            value={polyProps?.azimuth || 0}
+                            value={inputs.azimuth || 0}
                             type="number"
                             disabled />
                     </div>
