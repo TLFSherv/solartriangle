@@ -1,5 +1,6 @@
 "use client"
-import React, { useState, useRef } from "react"
+import React, { useState } from "react"
+import { useRouter } from "next/navigation";
 import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
@@ -22,7 +23,8 @@ export default function Calculator() {
         quantity: 0
     };
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
-    const mapRef = useRef<HTMLDivElement | null>(null);
+    const router = useRouter();
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.name;
         const value = e.target.value;
@@ -31,19 +33,33 @@ export default function Calculator() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(inputs);
+        const params = new URLSearchParams({
+            address: inputs.address,
+            lat: String(inputs.location?.lat),
+            lng: String(inputs.location?.lng),
+            area: String(inputs.area),
+            azimuth: String(inputs.azimuth),
+            capacity: String(inputs.capacity),
+            quantity: String(inputs.quantity),
+        });
+
+        // navigate to dashboard
+        router?.push(`/dashboard?${params.toString()}`);
     }
+
     return (
         <form className="space-y-10" onSubmit={handleSubmit}>
-            <SearchableMap>
-                <PlacesAutocomplete
-                    inputs={inputs}
-                    setInputs={setInputs}
-                    handleChange={handleChange} />
-                <DrawingTool
-                    inputs={inputs}
-                    setInputs={setInputs} />
-            </SearchableMap>
+            <div>
+                <SearchableMap>
+                    <PlacesAutocomplete
+                        inputs={inputs}
+                        setInputs={setInputs}
+                        handleChange={handleChange} />
+                    <DrawingTool
+                        inputs={inputs}
+                        setInputs={setInputs} />
+                </SearchableMap>
+            </div>
             <div className="flex flex-col justify-center gap-8 text-center max-w-xl mx-auto">
                 <div className="flex-1">
                     <label htmlFor="capacity" className="block text-sm">

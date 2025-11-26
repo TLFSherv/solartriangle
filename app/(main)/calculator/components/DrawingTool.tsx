@@ -63,7 +63,7 @@ export default function DrawingTool(props: {
         else setPolygons([poly]);
 
         poly.addListener("click", () => {
-            resetPolygonStrokes();
+            //resetPolygonStrokes();
             poly.setOptions({ strokeColor: "#F0662A" });
             const a = google.maps.geometry.spherical.computeArea(poly.getPath());
             const azimuth = computePolygonAzimuth(poly) || 0;
