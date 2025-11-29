@@ -3,6 +3,7 @@ import "./globals.css";
 import Link from 'next/link'
 import Image from 'next/image'
 import logo from '../public/logo.png'
+import Navbar from "./components/Navbar";
 
 export const metadata: Metadata = {
   title: "Solar Triangle",
@@ -36,6 +37,7 @@ export default function RootLayout({
           </Link>
         </header>
         <main className="flex-1">
+          <Navbar />
           {children}
         </main>
         <footer className="flex justify-center font-[Inter] font-light">

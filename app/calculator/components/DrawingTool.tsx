@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
-import shapes from '../../../../public/shapes.png'
-import erase from '../../../../public/eraser.png'
+import shapes from '../../../public/shapes.png'
+import erase from '../../../public/eraser.png'
 import { createRectanglePoints, computePolygonAzimuth } from '../lib/geometryTool'
 
 type FormInputs = {

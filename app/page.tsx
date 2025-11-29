@@ -1,8 +1,8 @@
 import Image from "next/image"
 import Link from "next/link";
-import Button from "../components/Button";
-import graph_lg from "../../public/graph-lg.png"
-import dataImg from "../../public/data-sm.svg"
+import Button from "./components/Button";
+import graph_lg from "../public/graph-lg.png"
+import dataImg from "../public/data-sm.svg"
 
 export default function Home() {
   return (
