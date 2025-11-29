@@ -13,7 +13,8 @@ type FormInputs = {
     area: number;
     azimuth: number;
     capacity: number;
-    quantity: number
+    quantity: number;
+    polygons: google.maps.Polygon[] | null;
 }
 
 export default function SuggestionsDropdown(props:

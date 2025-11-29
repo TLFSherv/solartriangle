@@ -3,7 +3,7 @@ import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
-import { createRectanglePoints, computePolygonAzimuth } from '../lib/geometryTool'
+import { createRectanglePoints, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
 
 type FormInputs = {
     address: string;
@@ -65,18 +65,17 @@ export default function DrawingTool(props: {
         if (polygons) setPolygons([...polygons, poly]);
         else setPolygons([poly]);
 
-
         poly.addListener("click", () => {
-            //resetPolygonStrokes();
             poly.setOptions({ strokeColor: "#F0662A" });
-            const area = google.maps.geometry.spherical.computeArea(poly.getPath());
-            const azimuth = computePolygonAzimuth(poly) || 0;
+            const area = getPolygonArea(poly);
+            const azimuth = getPolygonAzimuth(poly) || 0;
             setInputs({
                 ...inputs,
                 ['area']: Number(area.toFixed(2)),
                 ['azimuth']: Number(azimuth.toFixed(2))
             });
         });
+
         resetPolygonStrokes();
         poly.setMap(map);
     }

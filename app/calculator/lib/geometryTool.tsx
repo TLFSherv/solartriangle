@@ -28,10 +28,14 @@ function latLngToXY(latLng: google.maps.LatLng, origin: google.maps.LatLng) {
     return { x, y };
 }
 
-export function computePolygonAzimuth(polygon: google.maps.Polygon) {
+export function getPolygonArea(polygon: google.maps.Polygon) {
+    return google.maps.geometry.spherical.computeArea(polygon.getPath());
+}
+
+export function getPolygonAzimuth(polygon: google.maps.Polygon) {
     const path = polygon.getPath().getArray();
 
-    if (path.length < 2) return null;
+    if (path.length < 2) return 0;
 
     const a = google.maps.geometry.spherical.computeArea(path);
     // Use centroid as origin

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
+import { getPolygonArea, getPolygonAzimuth } from "./lib/geometryTool";
 
 type FormInputs = {
     address: string;
@@ -11,8 +12,15 @@ type FormInputs = {
     area: number;
     azimuth: number;
     capacity: number;
-    quantity: number
+    quantity: number;
+    polygons: google.maps.Polygon[] | null;
 }
+type Panel = {
+    polygon: google.maps.Polygon;
+    area: number;
+    azimuth: number
+}
+
 export default function Calculator() {
     const initInputs: FormInputs = {
         address: '',
@@ -20,7 +28,8 @@ export default function Calculator() {
         area: 0,
         azimuth: 0,
         capacity: 0,
-        quantity: 0
+        quantity: 0,
+        polygons: null
     };
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
     const router = useRouter();
@@ -33,7 +42,18 @@ export default function Calculator() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const params = new URLSearchParams({
+        if (!inputs.polygons) return
+
+        // check that polygon is at the same location as the address
+        const panels: Panel[] = inputs.polygons.map((poly) => {
+            return {
+                polygon: poly,
+                area: Number(getPolygonArea(poly).toFixed(2)),
+                azimuth: Number(getPolygonAzimuth(poly).toFixed(2))
+            }
+        });
+
+        const formData = {
             address: inputs.address,
             lat: String(inputs.location?.lat),
             lng: String(inputs.location?.lng),
@@ -41,10 +61,13 @@ export default function Calculator() {
             azimuth: String(inputs.azimuth),
             capacity: String(inputs.capacity),
             quantity: String(inputs.quantity),
-        });
+            panels: panels
+        };
+        //localStorage.setItem("calculatorData", JSON.stringify(formData));
 
+        console.log(formData)
         // navigate to dashboard
-        router?.push(`/dashboard?${params.toString()}`);
+        //router.push('/dashboard');
     }
 
     return (
