@@ -11,7 +11,8 @@ type FormInputs = {
     area: number;
     azimuth: number;
     capacity: number;
-    quantity: number
+    quantity: number;
+    polygons: google.maps.Polygon[] | null;
 }
 
 export default function DrawingTool(props: {
@@ -21,22 +22,24 @@ export default function DrawingTool(props: {
     const map = useMap();
     const [polygons, setPolygons] = useState<google.maps.Polygon[] | null>(null);
     const { inputs, setInputs } = props;
-
-    // De-select polygon if click outside of polygon
     useEffect(() => {
+        setInputs({ ...inputs, polygons: polygons })
+
+        // De-select polygon if click outside of polygon
         document.addEventListener("mousedown", resetPolygonStrokes);
-        return () => document.removeEventListener("mousedown", resetPolygonStrokes);
-    }, [polygons]);
 
-    // Delete with keyboard
-    useEffect(() => {
+        // Delete with keyboard
         if (!polygons) return;
         const handler = (e: KeyboardEvent) => {
             if ((e.key === "Delete" || e.key === "Backspace"))
                 deletePolygon();
         };
         window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
+
+        return () => {
+            window.removeEventListener("keydown", handler);
+            document.removeEventListener("mousedown", resetPolygonStrokes);
+        }
     }, [polygons]);
 
     const addPolygon = () => {
@@ -62,14 +65,15 @@ export default function DrawingTool(props: {
         if (polygons) setPolygons([...polygons, poly]);
         else setPolygons([poly]);
 
+
         poly.addListener("click", () => {
             //resetPolygonStrokes();
             poly.setOptions({ strokeColor: "#F0662A" });
-            const a = google.maps.geometry.spherical.computeArea(poly.getPath());
+            const area = google.maps.geometry.spherical.computeArea(poly.getPath());
             const azimuth = computePolygonAzimuth(poly) || 0;
             setInputs({
                 ...inputs,
-                ['area']: Number(a.toFixed(2)),
+                ['area']: Number(area.toFixed(2)),
                 ['azimuth']: Number(azimuth.toFixed(2))
             });
         });
