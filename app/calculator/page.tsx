@@ -44,7 +44,6 @@ export default function Calculator() {
         e.preventDefault();
         if (!inputs.polygons) return
 
-        // check that polygon is at the same location as the address
         const panels: Panel[] = inputs.polygons.map((poly) => {
             return {
                 polygon: poly.getPath().getArray(),

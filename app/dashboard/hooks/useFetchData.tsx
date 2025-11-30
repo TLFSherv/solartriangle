@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { fetchWeatherApi } from "openmeteo";
+import { data as calcData } from "../test-data/data";
 
 type ParamObj = {
     lat: string;
@@ -18,62 +19,6 @@ type Panel = {
     azimuth: number;
 }
 
-const calcData = {
-    "address": "8 Link Ln",
-    "lat": "32.3452828",
-    "lng": "-64.7250711",
-    "area": "64.48",
-    "azimuth": "13.93",
-    "capacity": "400",
-    "quantity": "4",
-    "panels": [
-        {
-            "polygon": [
-                {
-                    "lat": 32.345340846769375,
-                    "lng": -64.72521228835394
-                },
-                {
-                    "lat": 32.345379287436394,
-                    "lng": -64.72504042364962
-                },
-                {
-                    "lat": 32.34534067499894,
-                    "lng": -64.72502904849897
-                },
-                {
-                    "lat": 32.34529873970741,
-                    "lng": -64.72519781087718
-                }
-            ],
-            "area": 77.4,
-            "azimuth": 15.65
-        },
-        {
-            "polygon": [
-                {
-                    "lat": 32.34527444921581,
-                    "lng": -64.72518643573893
-                },
-                {
-                    "lat": 32.34530502704261,
-                    "lng": -64.72503421902873
-                },
-                {
-                    "lat": 32.3452672882259,
-                    "lng": -64.72502491208728
-                },
-                {
-                    "lat": 32.345234963080564,
-                    "lng": -64.72517402647883
-                }
-            ],
-            "area": 64.48,
-            "azimuth": 13.93
-        }
-    ]
-}
-
 export default function useFetchData() {
     const [data, setData] = useState([]);
     // const [error, setError] = useState(null);
@@ -89,7 +34,7 @@ export default function useFetchData() {
             azimuth: panel.azimuth,
             tilt: 30
         }
-    }) // parse userInputs
+    })
 
     useEffect(() => {
         const fetchData = async () => {
