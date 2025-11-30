@@ -39,8 +39,7 @@ export default function Calculator() {
         const value = e.target.value;
         setInputs(prev => ({ ...prev, [name]: value }));
     };
-    //if (inputs.polygons)
-    console.log(inputs);
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!inputs.polygons) return
