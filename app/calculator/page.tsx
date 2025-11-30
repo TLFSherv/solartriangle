@@ -16,7 +16,7 @@ type FormInputs = {
     polygons: google.maps.Polygon[] | null;
 }
 type Panel = {
-    polygon: google.maps.Polygon;
+    polygon: google.maps.LatLng[];
     area: number;
     azimuth: number
 }
@@ -39,7 +39,8 @@ export default function Calculator() {
         const value = e.target.value;
         setInputs(prev => ({ ...prev, [name]: value }));
     };
-
+    //if (inputs.polygons)
+    console.log(inputs);
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!inputs.polygons) return
@@ -47,7 +48,7 @@ export default function Calculator() {
         // check that polygon is at the same location as the address
         const panels: Panel[] = inputs.polygons.map((poly) => {
             return {
-                polygon: poly,
+                polygon: poly.getPath().getArray(),
                 area: Number(getPolygonArea(poly).toFixed(2)),
                 azimuth: Number(getPolygonAzimuth(poly).toFixed(2))
             }
@@ -63,11 +64,10 @@ export default function Calculator() {
             quantity: String(inputs.quantity),
             panels: panels
         };
-        //localStorage.setItem("calculatorData", JSON.stringify(formData));
 
-        console.log(formData)
+        localStorage.setItem("calculatorData", JSON.stringify(formData));
         // navigate to dashboard
-        //router.push('/dashboard');
+        router.push('/dashboard');
     }
 
     return (

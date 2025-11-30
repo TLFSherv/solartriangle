@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../public/shapes.png'
@@ -21,15 +21,16 @@ export default function DrawingTool(props: {
 }) {
     const map = useMap();
     const [polygons, setPolygons] = useState<google.maps.Polygon[] | null>(null);
+    const polygonsRef = useRef<google.maps.Polygon[] | null>(polygons);
     const { inputs, setInputs } = props;
-    useEffect(() => {
-        setInputs({ ...inputs, polygons: polygons })
 
+    useEffect(() => {
+        polygonsRef.current = polygons;
+        setInputs(prev => ({ ...prev, polygons: polygonsRef.current }))
         // De-select polygon if click outside of polygon
         document.addEventListener("mousedown", resetPolygonStrokes);
 
         // Delete with keyboard
-        if (!polygons) return;
         const handler = (e: KeyboardEvent) => {
             if ((e.key === "Delete" || e.key === "Backspace"))
                 deletePolygon();
@@ -41,6 +42,18 @@ export default function DrawingTool(props: {
             document.removeEventListener("mousedown", resetPolygonStrokes);
         }
     }, [polygons]);
+
+    const handleClick = (poly: google.maps.Polygon) => {
+        poly.setOptions({ strokeColor: "#F0662A" });
+        const area = getPolygonArea(poly);
+        const azimuth = getPolygonAzimuth(poly) || 0;
+        setInputs((prev) => ({
+            ...prev,
+            polygons: polygonsRef.current,
+            ['area']: Number(area.toFixed(2)),
+            ['azimuth']: Number(azimuth.toFixed(2))
+        }));
+    }
 
     const addPolygon = () => {
         if (!map) return;
@@ -65,18 +78,11 @@ export default function DrawingTool(props: {
         if (polygons) setPolygons([...polygons, poly]);
         else setPolygons([poly]);
 
-        poly.addListener("click", () => {
-            poly.setOptions({ strokeColor: "#F0662A" });
-            const area = getPolygonArea(poly);
-            const azimuth = getPolygonAzimuth(poly) || 0;
-            setInputs({
-                ...inputs,
-                ['area']: Number(area.toFixed(2)),
-                ['azimuth']: Number(azimuth.toFixed(2))
-            });
+        poly.addListener("click", () => handleClick(poly));
+        poly.getPath().addListener("set_at", () => {
+            setInputs((prev) => ({ ...prev, polygons: polygonsRef.current }))
         });
 
-        resetPolygonStrokes();
         poly.setMap(map);
     }
 
