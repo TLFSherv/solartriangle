@@ -1,6 +1,5 @@
 "use client"
 import React, { useState } from "react";
-import Link from "next/link"
 import TopicCard from "./components/TopicCard";
 
 export default function Learn() {
@@ -10,7 +9,7 @@ export default function Learn() {
         <div className="m-6 space-y-8">
             {
                 !isHidden &&
-                <div>
+                <div className="space-y-8">
                     <h1 className="text-[64px] tracking-wide font-[Lexend_Deca] text-center">
                         Learn
                         <span className="text-[#F0662A]">.</span>

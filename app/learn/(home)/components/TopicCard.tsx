@@ -1,7 +1,4 @@
-"use client"
-
 export default function TopicCard({ children, title, isActive }: { children: React.ReactNode, title: string, isActive: boolean }) {
-
     return (
         <div className="border-2 border-[#DD6B19] rounded-lg font-[space_grotesk] font-light">
             <div className="p-4 cursor-pointer">
