@@ -30,13 +30,13 @@ export default function Home() {
         </div>
       </section>
       <section className='mx-auto mx-8 space-y-6'>
-        <div className="absolute z-[-1] sm:top-140">
+        <div className="absolute z-[-1] min-[500px]:top-140">
           <Image src={circles} alt="circles" />
         </div>
         <h2 className="static text-center text-[#F6513A] text-5xl font-[Darker_Grotesque]">
           Benefits
         </h2>
-        <ul className="text-center space-y-2 sm:space-y-3 text-lg sm:text-xl font-[Space_Grotesk] font-light list-disc list-inside">
+        <ul className="text-center space-y-3 text-lg sm:text-xl font-[Space_Grotesk] font-light list-disc list-inside">
           <li>Accurately predict future power generation</li>
           <li>Optimise your solar system</li>
           <li>Keep a history of past performance</li>
