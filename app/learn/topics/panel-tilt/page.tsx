@@ -10,10 +10,10 @@ import sunsRays from "@/public/rays-on-earth.png"
 
 export default function PanelTilt() {
     const chapters = [
-        { title: 'Latitude and Longitude', id: "#section1" },
-        { title: 'The Earth', id: "#section2" },
-        { title: 'The Sun', id: "#section3" },
-        { title: 'Conclusion', id: "#section4" }];
+        { title: '1. Latitude and Longitude', id: "#section1", level: 0 },
+        { title: '2. The Earth', id: "#section2", level: 0 },
+        { title: '3. The Sun', id: "#section3", level: 0 },
+        { title: '4. Conclusion', id: "#section4", level: 0 }];
     return (
         <div className="mt-12 space-y-8 mx-6 font-[Space_Grotesk] font-light">
             <h1 className="text-4xl text-center tracking-wide underline">

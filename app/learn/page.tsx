@@ -14,22 +14,22 @@ export default function Learn() {
                     Welcome
                 </p>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2">
                 <TopicCard title={"Panel Tilt"}>
-                    <h3>What you will learn</h3>
                     <p>
+                        <span className="font-medium">What you will learn: </span>
                         You'll learn why the recommended tilt for most solar panels
                         is the same as the latitude of the location of the panels.
                     </p>
-                    <Link href={"/learn/topics/panel-tilt"}>Learn more</Link>
+                    <Link href={"/learn/topics/panel-tilt"} className="text-blue-400">Learn more</Link>
                 </TopicCard>
                 <TopicCard title={"Azimuth"}>
-                    <h3>What you will learn</h3>
                     <p>
+                        <span className="font-medium">What you will learn: </span>
                         What azimuth is, and how to use Principal Component Analysis
                         to find the azimuth of a polygon.
                     </p>
-                    <Link href={"/learn/topics/azimuth"}>Learn more</Link>
+                    <Link href={"/learn/topics/azimuth"} className="text-blue-400">Learn more</Link>
                 </TopicCard>
             </div>
         </div>
