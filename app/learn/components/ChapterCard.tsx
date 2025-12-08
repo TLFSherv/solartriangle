@@ -8,7 +8,7 @@ export default function ChapterCard({ topicChapters }:
                 {
                     topicChapters.map((chapter) => {
                         return (
-                            <li className={`${chapter.level === 1 ? "pl-4" : ""} ${chapter.level === 2 ? "pl-8" : ""}`} >
+                            <li key={chapter.title} className={`${chapter.level === 1 ? "pl-4" : ""} ${chapter.level === 2 ? "pl-8" : ""}`} >
                                 <a href={chapter.id} className="hover:text-[#FF8D28]">
                                     {chapter.title}
                                 </a>

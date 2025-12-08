@@ -2,8 +2,7 @@ import Image from "next/image"
 import Link from "next/link";
 import crown_lg from "../public/crown-lg.png"
 import circles from "../public/circles.png"
-import circles_sm from "../public/circles-sm.png"
-import circles_xs from "../public/circles-xs.png"
+import circles_lg from "../public/circles-lg.png"
 
 
 export default function Home() {
@@ -29,9 +28,9 @@ export default function Home() {
           </Link>
         </div>
       </section>
-      <section className='mx-auto mx-8 space-y-6'>
-        <div className="absolute z-[-1] min-[500px]:top-140">
-          <Image src={circles} alt="circles" />
+      <section className='relative mx-auto mx-8 space-y-6'>
+        <div className="absolute top-[-70] z-[-1]">
+          <Image src={circles_lg} alt="circles" />
         </div>
         <h2 className="static text-center text-[#F6513A] text-5xl font-[Darker_Grotesque]">
           Benefits
