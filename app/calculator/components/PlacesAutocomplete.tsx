@@ -12,11 +12,16 @@ type Suggestion = {
 type FormInputs = {
     address: string;
     location: { lat: number; lng: number } | null;
+    polygons: { id: number; polygon: google.maps.Polygon }[];
+    solarArrays: SolarArray[];
+}
+type SolarArray = {
+    id: number;
+    solarCapacity: number;
+    numberOfPanels: number;
     area: number;
     azimuth: number;
-    capacity: number;
-    quantity: number;
-    polygons: google.maps.Polygon[] | null;
+    shape: google.maps.LatLng[];
 }
 
 const PlacesAutocomplete = (props:
@@ -85,20 +90,20 @@ const PlacesAutocomplete = (props:
         }
         getAutocompleteResults(debouncedString);
     }, [debouncedString]);
-
     return (
         <>
             <AdvancedMarker key={address} position={location} />
             <div className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
                 <label className='space-x-2 w-full'>
-                    <span className='text-sm'>Address:</span>
+                    <span>Address:</span>
                     <input
                         value={address}
                         placeholder='5 Paget ...'
                         onChange={props.handleChange}
                         onFocus={() => setIsActive(true)}
+                        onBlur={() => setIsActive(false)}
                         name="address"
-                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
+                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5 h-[40px]"
                         type="text"
                         autoComplete="off" />
                 </label>

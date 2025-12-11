@@ -4,34 +4,40 @@ import { useRouter } from "next/navigation";
 import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
+import SolarArrayForm from "./components/SolarArrayForm";
 import { getPolygonArea, getPolygonAzimuth } from "./lib/geometryTool";
 
 type FormInputs = {
     address: string;
     location: { lat: number; lng: number } | null;
+    polygons: { id: number; polygon: google.maps.Polygon }[];
+    solarArrays: SolarArray[];
+}
+type SolarArray = {
+    id: number;
+    solarCapacity: number;
+    numberOfPanels: number;
     area: number;
     azimuth: number;
-    capacity: number;
-    quantity: number;
-    polygons: google.maps.Polygon[] | null;
-}
-type Panel = {
-    polygon: google.maps.LatLng[];
-    area: number;
-    azimuth: number
+    shape: google.maps.LatLng[];
 }
 
 export default function Calculator() {
     const initInputs: FormInputs = {
         address: '',
         location: null,
-        area: 0,
-        azimuth: 0,
-        capacity: 0,
-        quantity: 0,
-        polygons: null
+        polygons: [],
+        solarArrays: [{
+            id: 0,
+            area: 0,
+            azimuth: 0,
+            solarCapacity: 0,
+            numberOfPanels: 0,
+            shape: []
+        }]
     };
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
+    const [activeId, setActiveId] = useState(0);
     const router = useRouter();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,26 +50,27 @@ export default function Calculator() {
         e.preventDefault();
         if (!inputs.polygons) return
 
-        const panels: Panel[] = inputs.polygons.map((poly) => {
+        const result = inputs.solarArrays.map((item, i) => {
+            const { id, polygon } = inputs.polygons[i];
+            if (id !== item.id) return;
             return {
-                polygon: poly.getPath().getArray(),
-                area: Number(getPolygonArea(poly).toFixed(2)),
-                azimuth: Number(getPolygonAzimuth(poly).toFixed(2))
+                id: id,
+                area: Number(getPolygonArea(polygon).toFixed(2)),
+                azimuth: Number(getPolygonAzimuth(polygon).toFixed(2)),
+                solarCapacity: item.solarCapacity,
+                numberOfPanels: item.numberOfPanels,
+                shape: polygon.getPath().getArray(),
             }
         });
 
-        const formData = {
+        const data = {
             address: inputs.address,
             lat: String(inputs.location?.lat),
             lng: String(inputs.location?.lng),
-            area: String(inputs.area),
-            azimuth: String(inputs.azimuth),
-            capacity: String(inputs.capacity),
-            quantity: String(inputs.quantity),
-            panels: panels
+            solarArrays: result
         };
 
-        localStorage.setItem("calculatorData", JSON.stringify(formData));
+        localStorage.setItem("calculatorData", JSON.stringify(data));
         // navigate to dashboard
         router.push('/dashboard');
     }
@@ -81,32 +88,12 @@ export default function Calculator() {
                         setInputs={setInputs} />
                 </SearchableMap>
             </div>
-            <div className="flex flex-col justify-center gap-8 text-center max-w-xl mx-auto">
-                <div className="flex-1">
-                    <label htmlFor="capacity" className="block text-sm">
-                        Solar capacity
-                    </label>
-                    <input
-                        name="capacity"
-                        value={inputs.capacity}
-                        onChange={handleChange}
-                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
-                        type="number"
-                        autoComplete="false" />
-                </div>
-                <div className="flex-1">
-                    <label htmlFor="quantity" className="block text-sm">
-                        Panel quantity
-                    </label>
-                    <input
-                        name="quantity"
-                        value={inputs.quantity}
-                        onChange={handleChange}
-                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5"
-                        type="number"
-                        autoComplete="false" />
-                </div>
-            </div>
+            <SolarArrayForm
+                inputs={inputs}
+                setInputs={setInputs}
+                activeId={activeId}
+                setActiveId={setActiveId}
+            />
             <div className="flex justify-center text-lg sm:text-xl">
                 <button
                     type="submit"

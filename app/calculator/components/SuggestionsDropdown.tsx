@@ -10,11 +10,16 @@ type Suggestion = {
 type FormInputs = {
     address: string;
     location: { lat: number; lng: number } | null;
+    polygons: { id: number; polygon: google.maps.Polygon }[];
+    solarArrays: SolarArray[];
+}
+type SolarArray = {
+    id: number;
+    solarCapacity: number;
+    numberOfPanels: number;
     area: number;
     azimuth: number;
-    capacity: number;
-    quantity: number;
-    polygons: google.maps.Polygon[] | null;
+    shape: google.maps.LatLng[];
 }
 
 export default function SuggestionsDropdown(props:

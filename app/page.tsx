@@ -1,7 +1,6 @@
 import Image from "next/image"
 import Link from "next/link";
 import crown_lg from "../public/crown-lg.png"
-import circles from "../public/circles.png"
 import circles_lg from "../public/circles-lg.png"
 
 

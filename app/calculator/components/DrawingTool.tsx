@@ -3,16 +3,21 @@ import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
-import { createRectanglePoints, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
+import { createRectanglePoints } from '../lib/geometryTool'
 
 type FormInputs = {
     address: string;
     location: { lat: number; lng: number } | null;
+    polygons: { id: number; polygon: google.maps.Polygon }[];
+    solarArrays: SolarArray[];
+}
+type SolarArray = {
+    id: number;
+    solarCapacity: number;
+    numberOfPanels: number;
     area: number;
     azimuth: number;
-    capacity: number;
-    quantity: number;
-    polygons: google.maps.Polygon[] | null;
+    shape: google.maps.LatLng[];
 }
 
 export default function DrawingTool(props: {
@@ -20,13 +25,14 @@ export default function DrawingTool(props: {
     setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
 }) {
     const map = useMap();
-    const [polygons, setPolygons] = useState<google.maps.Polygon[] | null>(null);
-    const polygonsRef = useRef<google.maps.Polygon[] | null>(polygons);
+    const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(null);
+    const polygonsRef = useRef<{ id: number; polygon: google.maps.Polygon }[] | null>(polygons);
+    const idRef = useRef(0);
     const { inputs, setInputs } = props;
 
     useEffect(() => {
         polygonsRef.current = polygons;
-        setInputs(prev => ({ ...prev, polygons: polygonsRef.current }))
+        setInputs(prev => ({ ...prev, polygons: polygonsRef.current || [] }))
         // De-select polygon if click outside of polygon
         document.addEventListener("mousedown", resetPolygonStrokes);
 
@@ -45,13 +51,9 @@ export default function DrawingTool(props: {
 
     const handleClick = (poly: google.maps.Polygon) => {
         poly.setOptions({ strokeColor: "#F0662A" });
-        const area = getPolygonArea(poly);
-        const azimuth = getPolygonAzimuth(poly) || 0;
         setInputs((prev) => ({
             ...prev,
-            polygons: polygonsRef.current,
-            ['area']: Number(area.toFixed(2)),
-            ['azimuth']: Number(azimuth.toFixed(2))
+            polygons: polygonsRef.current || []
         }));
     }
 
@@ -75,12 +77,14 @@ export default function DrawingTool(props: {
             editable: true,
         });
 
-        if (polygons) setPolygons([...polygons, poly]);
-        else setPolygons([poly]);
+        if (polygons) setPolygons([...polygons, { id: idRef.current, polygon: poly }]);
+        else setPolygons([{ id: idRef.current, polygon: poly }]);
+        idRef.current = idRef.current + 1;
 
         poly.addListener("click", () => handleClick(poly));
+        // update polygon if vertices change
         poly.getPath().addListener("set_at", () => {
-            setInputs((prev) => ({ ...prev, polygons: polygonsRef.current }))
+            setInputs((prev) => ({ ...prev, polygons: polygonsRef.current || [] }))
         });
 
         poly.setMap(map);
@@ -88,25 +92,25 @@ export default function DrawingTool(props: {
 
     const deletePolygon = () => {
         if (!polygons) return;
-        const selectedPolygon = polygons?.filter((poly) =>
-            poly.get("strokeColor") === '#F0662A'
+        const selectedPolygon = polygons?.filter((p) =>
+            p.polygon.get("strokeColor") === '#F0662A'
         )[0];
         if (!selectedPolygon) return;
-        selectedPolygon.setMap(null);
+        selectedPolygon.polygon.setMap(null);
         setPolygons(polygons?.filter((poly) => poly !== selectedPolygon));
     }
 
     const resetPolygonStrokes = () => {
         polygons?.forEach((p) => {
-            if (p.get("strokeColor") === '#F0662A')
-                p.setOptions({ strokeColor: "#1E1E1E" });
+            if (p.polygon.get("strokeColor") === '#F0662A')
+                p.polygon.setOptions({ strokeColor: "#1E1E1E" });
         })
     }
 
     return (
-        <>
-            <div className="flex my-2 rounded-3xl border-2 border-[#444444] py-1">
-                <ol className="flex flex-1 justify-evenly items-center text-xs text-center font-[Inter]">
+        <div className="mb-2">
+            <div className="flex ml-auto w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
+                <ol className="flex flex-1 justify-around items-center text-xs text-center font-[Inter]">
                     <li className="cursor-pointer" onClick={addPolygon}>
                         <Image src={shapes} width={30} height={30} alt={"shapes"} />
                         Add
@@ -116,31 +120,11 @@ export default function DrawingTool(props: {
                         Erase
                     </li>
                 </ol>
-                <div className="flex justify-end flex-2 space-x-6 items-center mx-4">
-                    <div>
-                        <label className="text-sm">Area:</label>
-                        <input
-                            className="py-1 px-2 border-1 border-[#444444] w-3/4 rounded-md max-w-xs"
-                            name="area"
-                            value={inputs.area || 0}
-                            type="number"
-                            disabled />
-                    </div>
-                    <div>
-                        <label className="text-sm">Azimuth:</label>
-                        <input
-                            className="py-1 px-2 border-1 border-[#444444] w-3/5 rounded-md max-w-xs"
-                            name="azimuth"
-                            value={inputs.azimuth || 0}
-                            type="number"
-                            disabled />
-                    </div>
-                </div>
             </div>
-            <div className="text-[10px]">
+            <div className="text-right text-[8px]">
                 <a href="https://www.flaticon.com/free-icons/shapes"
                     title="shapes icons">Shapes icons created by Freepik - Flaticon</a>
             </div>
-        </>
+        </div>
     );
 }
