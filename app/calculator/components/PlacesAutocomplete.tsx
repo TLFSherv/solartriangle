@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
 
@@ -33,6 +33,7 @@ const PlacesAutocomplete = (props:
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [isActive, setIsActive] = useState(false);
+    const searchContainer = useRef<HTMLDivElement>(null);
     const { address, location } = props.inputs;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
@@ -56,6 +57,17 @@ const PlacesAutocomplete = (props:
             map?.setZoom(18);
         }
     }, [location])
+
+    // hide suggestions when you click outside suggestions boc
+    useEffect(() => {
+        const outsideClickHandler = (e: MouseEvent) => {
+            if (searchContainer.current &&
+                !searchContainer.current.contains(e.target as Node))
+                setIsActive(false);
+        }
+        document.addEventListener('click', outsideClickHandler);
+        return () => document.removeEventListener('click', outsideClickHandler);
+    }, [])
 
     // fetch auto-suggestion results
     useEffect(() => {
@@ -93,7 +105,9 @@ const PlacesAutocomplete = (props:
     return (
         <>
             <AdvancedMarker key={address} position={location} />
-            <div className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
+            <div
+                ref={searchContainer}
+                className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
                 <label className='space-x-2 w-full'>
                     <span>Address:</span>
                     <input
@@ -101,7 +115,6 @@ const PlacesAutocomplete = (props:
                         placeholder='5 Paget ...'
                         onChange={props.handleChange}
                         onFocus={() => setIsActive(true)}
-                        onBlur={() => setIsActive(false)}
                         name="address"
                         className="py-1 px-2 bg-[#444444] rounded-md w-4/5 h-[40px]"
                         type="text"

@@ -27,17 +27,10 @@ export default function Calculator() {
         address: '',
         location: null,
         polygons: [],
-        solarArrays: [{
-            id: 0,
-            area: 0,
-            azimuth: 0,
-            solarCapacity: 0,
-            numberOfPanels: 0,
-            shape: []
-        }]
+        solarArrays: []
     };
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
-    const [activeId, setActiveId] = useState(0);
+    const [activeId, setActiveId] = useState(1);
     const router = useRouter();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +78,9 @@ export default function Calculator() {
                         handleChange={handleChange} />
                     <DrawingTool
                         inputs={inputs}
-                        setInputs={setInputs} />
+                        setInputs={setInputs}
+                        activeId={activeId}
+                        setActiveId={setActiveId} />
                 </SearchableMap>
             </div>
             <SolarArrayForm

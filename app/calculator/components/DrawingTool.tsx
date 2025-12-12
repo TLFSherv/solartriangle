@@ -23,39 +23,27 @@ type SolarArray = {
 export default function DrawingTool(props: {
     inputs: FormInputs,
     setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
+    activeId: number,
+    setActiveId: React.Dispatch<React.SetStateAction<number>>
 }) {
     const map = useMap();
     const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(null);
     const polygonsRef = useRef<{ id: number; polygon: google.maps.Polygon }[] | null>(polygons);
-    const idRef = useRef(0);
-    const { inputs, setInputs } = props;
+    const polygonIdRef = useRef(1);
+    const { setInputs } = props;
 
     useEffect(() => {
         polygonsRef.current = polygons;
         setInputs(prev => ({ ...prev, polygons: polygonsRef.current || [] }))
-        // De-select polygon if click outside of polygon
-        document.addEventListener("mousedown", resetPolygonStrokes);
-
-        // Delete with keyboard
-        const handler = (e: KeyboardEvent) => {
-            if ((e.key === "Delete" || e.key === "Backspace"))
-                deletePolygon();
-        };
-        window.addEventListener("keydown", handler);
-
-        return () => {
-            window.removeEventListener("keydown", handler);
-            document.removeEventListener("mousedown", resetPolygonStrokes);
-        }
     }, [polygons]);
 
-    const handleClick = (poly: google.maps.Polygon) => {
-        poly.setOptions({ strokeColor: "#F0662A" });
-        setInputs((prev) => ({
-            ...prev,
-            polygons: polygonsRef.current || []
-        }));
-    }
+    useEffect(() => {
+        resetPolygonStrokes();
+        polygonsRef.current?.forEach((p) => {
+            if (p.id === props.activeId)
+                p.polygon.setOptions({ strokeColor: "#F0662A" });
+        })
+    }, [props.activeId])
 
     const addPolygon = () => {
         if (!map) return;
@@ -77,17 +65,19 @@ export default function DrawingTool(props: {
             editable: true,
         });
 
-        if (polygons) setPolygons([...polygons, { id: idRef.current, polygon: poly }]);
-        else setPolygons([{ id: idRef.current, polygon: poly }]);
-        idRef.current = idRef.current + 1;
+        if (polygons) setPolygons([...polygons, { id: polygonIdRef.current, polygon: poly }]);
+        else setPolygons([{ id: polygonIdRef.current, polygon: poly }]);
 
-        poly.addListener("click", () => handleClick(poly));
+        const id = polygonIdRef.current;
+        poly.addListener("click", () => props.setActiveId(id));
+
         // update polygon if vertices change
         poly.getPath().addListener("set_at", () => {
             setInputs((prev) => ({ ...prev, polygons: polygonsRef.current || [] }))
         });
 
         poly.setMap(map);
+        polygonIdRef.current = polygonIdRef.current + 1;
     }
 
     const deletePolygon = () => {
@@ -101,7 +91,7 @@ export default function DrawingTool(props: {
     }
 
     const resetPolygonStrokes = () => {
-        polygons?.forEach((p) => {
+        polygonsRef.current?.forEach((p) => {
             if (p.polygon.get("strokeColor") === '#F0662A')
                 p.polygon.setOptions({ strokeColor: "#1E1E1E" });
         })

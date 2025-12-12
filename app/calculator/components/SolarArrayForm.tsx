@@ -23,11 +23,17 @@ export default function SolarArrayForm(props: {
 }) {
     const { polygons, solarArrays } = props.inputs;
     const { activeId, setActiveId } = props;
+    let isEmpty = polygons.length === 0 && solarArrays.length === 0;
 
     useEffect(() => {
-        if (polygons.length === 0 && solarArrays[0].id === 0) return;
+        if (isEmpty) return;
 
         const polygonIds = polygons.map((p) => p.id);
+
+        // if no solar array is selected select one
+        let isSelected = polygonIds.some((id) => id === activeId);
+        if (!isSelected) setActiveId(polygonIds[0]);
+
         // discard objs in solarArrays that don't have ids in polygonIds
         let result = solarArrays.filter((sa) => polygonIds.includes(sa.id));
 
@@ -45,7 +51,6 @@ export default function SolarArrayForm(props: {
                 }
             )
         });
-        console.log(result);
         props.setInputs(prev => ({ ...prev, solarArrays: result }));
     }, [polygons])
 
@@ -53,10 +58,11 @@ export default function SolarArrayForm(props: {
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         type PropertyNames = 'solarCapacity' | 'numberOfPanels' | 'area' | 'azimuth';
         let name = e.target.name as PropertyNames;
+        const value = e.target.value;
         props.setInputs(prev => ({
             ...prev,
             solarArrays: solarArrays.map((item, i) =>
-                (i === activeIndex ? { ...item, [name]: parseInt(e.target.value) } : item))
+                (i === activeIndex ? { ...item, [name]: value === '' ? '' : Number(value) } : item))
         }));
     }
 
@@ -65,12 +71,12 @@ export default function SolarArrayForm(props: {
     return (
         <div className="flex justify-evenly border-2 border-[#787572] rounded-xl p-6 gap-8 max-w-3xl mx-auto">
             <div className="flex-1 my-auto">
-                <ol className="text-center font-[Space_Grotesk] py-3">
-                    {solarArrays.map(sa => {
-                        return <li key={sa.id}
-                            className={activeId === sa.id ? "text-[#DD6B19]" : ""}
-                            onClick={() => setActiveId(sa.id)}>
-                            Solar array {sa.id}
+                <ol className="text-center font-[Space_Grotesk] space-y-2 py-3">
+                    {solarArrays.map(({ id }) => {
+                        return <li key={id}
+                            className={`cursor-pointer ${activeId === id ? "text-[#DD6B19]" : ""}`}
+                            onClick={() => setActiveId(id)}>
+                            Solar array {id}
                         </li>
                     })}
                 </ol>
@@ -82,11 +88,12 @@ export default function SolarArrayForm(props: {
                     </label>
                     <input
                         name="solarCapacity"
-                        value={isNaN(solarArrays[activeIndex]?.solarCapacity) ? 0 : solarArrays[activeIndex]?.solarCapacity}
+                        value={solarArrays[activeIndex]?.solarCapacity || ''}
                         onChange={handleChange}
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
-                        autoComplete="false" />
+                        autoComplete="false"
+                        disabled={isEmpty} />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="numberOfPanels">
@@ -94,11 +101,12 @@ export default function SolarArrayForm(props: {
                     </label>
                     <input
                         name="numberOfPanels"
-                        value={solarArrays[activeIndex]?.numberOfPanels}
+                        value={solarArrays[activeIndex]?.numberOfPanels || ''}
                         onChange={handleChange}
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
-                        autoComplete="false" />
+                        autoComplete="false"
+                        disabled={isEmpty} />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="azimuth">
@@ -106,11 +114,12 @@ export default function SolarArrayForm(props: {
                     </label>
                     <input
                         name="azimuth"
-                        value={solarArrays[activeIndex]?.azimuth}
+                        value={solarArrays[activeIndex]?.azimuth || ''}
                         onChange={handleChange}
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
-                        autoComplete="false" />
+                        autoComplete="false"
+                        disabled={isEmpty} />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="area">
@@ -118,11 +127,12 @@ export default function SolarArrayForm(props: {
                     </label>
                     <input
                         name="area"
-                        value={solarArrays[activeIndex]?.area}
+                        value={solarArrays[activeIndex]?.area || ''}
                         onChange={handleChange}
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
-                        autoComplete="false" />
+                        autoComplete="false"
+                        disabled={isEmpty} />
                 </div>
                 <div className="col-span-2 space-x-1 mt">
                     <input className="accent-black" type="checkbox" name="useArea" />
