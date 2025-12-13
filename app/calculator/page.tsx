@@ -5,7 +5,6 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { getPolygonArea, getPolygonAzimuth } from "./lib/geometryTool";
 import { FormInputs } from "./types/types";
 
 export default function Calculator() {
@@ -29,29 +28,16 @@ export default function Calculator() {
         e.preventDefault();
         if (!inputs.polygons) return
 
-        const result = inputs.solarArrays.map((item, i) => {
-            const { id, polygon } = inputs.polygons[i];
-            if (id !== item.id) return;
-            return {
-                id: id,
-                area: Number(getPolygonArea(polygon).toFixed(2)),
-                azimuth: Number(getPolygonAzimuth(polygon).toFixed(2)),
-                solarCapacity: item.solarCapacity,
-                numberOfPanels: item.numberOfPanels,
-                shape: polygon.getPath().getArray(),
-            }
-        });
-
-        const data = {
+        const formData = {
             address: inputs.address,
             lat: String(inputs.location?.lat),
             lng: String(inputs.location?.lng),
-            solarArrays: result
+            solarArrays: inputs.solarArrays
         };
 
-        localStorage.setItem("calculatorData", JSON.stringify(data));
+        localStorage.setItem("calculatorData", JSON.stringify(formData));
         // navigate to dashboard
-        router.push('/dashboard');
+        // router.push('/dashboard');
     }
 
     return (
