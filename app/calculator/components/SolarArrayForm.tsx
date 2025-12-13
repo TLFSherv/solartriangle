@@ -1,20 +1,9 @@
 "use client"
 import React, { useEffect, useState } from "react";
+import { getPolygonArea, getPolygonAzimuth } from "../lib/geometryTool";
+import { FormInputs } from "../types/types";
 
-type FormInputs = {
-    address: string;
-    location: { lat: number; lng: number } | null;
-    polygons: { id: number; polygon: google.maps.Polygon }[];
-    solarArrays: SolarArray[];
-}
-type SolarArray = {
-    id: number;
-    solarCapacity: number;
-    numberOfPanels: number;
-    area: number;
-    azimuth: number;
-    shape: google.maps.LatLng[];
-}
+
 export default function SolarArrayForm(props: {
     inputs: FormInputs,
     setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
@@ -24,6 +13,43 @@ export default function SolarArrayForm(props: {
     const { polygons, solarArrays } = props.inputs;
     const { activeId, setActiveId } = props;
     let isEmpty = polygons.length === 0 && solarArrays.length === 0;
+
+    useEffect(() => {
+        const poly = polygons[activeIndex]?.polygon;
+
+        if (isEmpty || !poly) return;
+
+        const polygonPath = poly.getPath().getArray();
+        const shape = polygonPath.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+
+        // check if polygon has changed
+        const oldShape = solarArrays[activeIndex].shape;
+        const isUnchanged = (shape.length === oldShape.length) &&
+            shape.every((elem, i) => elem.lat === oldShape[i].lat && elem.lng === oldShape[i].lng);
+
+        if (isUnchanged) return;
+        console.log('hello');
+        const timeoutId = setTimeout(() => {
+            const area = Number(getPolygonArea(poly).toFixed(2));
+            const azimuth = Number(getPolygonAzimuth(poly).toFixed(2));
+
+            if (area === solarArrays[activeIndex].area &&
+                azimuth === solarArrays[activeIndex].azimuth) return;
+
+            props.setInputs(prev => ({
+                ...prev,
+                solarArrays: solarArrays.map((item, i) =>
+                (i === activeIndex ?
+                    {
+                        ...item,
+                        'shape': shape,
+                        'area': area,
+                        'azimuth': azimuth
+                    } : item))
+            }));
+        }, 3000);
+        return () => clearTimeout(timeoutId);
+    }, [props.inputs])
 
     useEffect(() => {
         if (isEmpty) return;
@@ -47,7 +73,7 @@ export default function SolarArrayForm(props: {
                     numberOfPanels: 1,
                     area: 0,
                     azimuth: 0,
-                    shape: polygons[i].polygon.getPath().getArray()
+                    shape: []
                 }
             )
         });
@@ -56,9 +82,17 @@ export default function SolarArrayForm(props: {
 
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-        type PropertyNames = 'solarCapacity' | 'numberOfPanels' | 'area' | 'azimuth';
+        type PropertyNames = 'solarCapacity' | 'numberOfPanels' | 'area' | 'azimuth' | 'areaToPanels';
         let name = e.target.name as PropertyNames;
-        const value = e.target.value;
+        let value = e.target.value;
+
+        if (name === 'areaToPanels' && e.target.checked) {
+            name = 'numberOfPanels';
+            // area of a panel is 1.8m2 and add 30% buffer
+            let approxNumberofPanels = (solarArrays[activeIndex].area || 0) / 2.34;
+            value = String(approxNumberofPanels.toFixed(0));
+        }
+
         props.setInputs(prev => ({
             ...prev,
             solarArrays: solarArrays.map((item, i) =>
@@ -135,7 +169,7 @@ export default function SolarArrayForm(props: {
                         disabled={isEmpty} />
                 </div>
                 <div className="col-span-2 space-x-1 mt">
-                    <input className="accent-black" type="checkbox" name="useArea" />
+                    <input className="accent-black" type="checkbox" name="areaToPanels" onChange={handleChange} />
                     <label>Use area to estimate number of panels</label>
                 </div>
             </div>

@@ -6,21 +6,7 @@ import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
 import { getPolygonArea, getPolygonAzimuth } from "./lib/geometryTool";
-
-type FormInputs = {
-    address: string;
-    location: { lat: number; lng: number } | null;
-    polygons: { id: number; polygon: google.maps.Polygon }[];
-    solarArrays: SolarArray[];
-}
-type SolarArray = {
-    id: number;
-    solarCapacity: number;
-    numberOfPanels: number;
-    area: number;
-    azimuth: number;
-    shape: google.maps.LatLng[];
-}
+import { FormInputs } from "./types/types";
 
 export default function Calculator() {
     const initInputs: FormInputs = {

@@ -4,21 +4,8 @@ import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints } from '../lib/geometryTool'
+import { FormInputs } from "../types/types";
 
-type FormInputs = {
-    address: string;
-    location: { lat: number; lng: number } | null;
-    polygons: { id: number; polygon: google.maps.Polygon }[];
-    solarArrays: SolarArray[];
-}
-type SolarArray = {
-    id: number;
-    solarCapacity: number;
-    numberOfPanels: number;
-    area: number;
-    azimuth: number;
-    shape: google.maps.LatLng[];
-}
 
 export default function DrawingTool(props: {
     inputs: FormInputs,
@@ -55,20 +42,20 @@ export default function DrawingTool(props: {
 
         const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
         const path = createRectanglePoints(center, length, length);
+        const id = polygonIdRef.current;
 
         const poly = new google.maps.Polygon({
             paths: path,
-            strokeColor: "#1E1E1E",
+            strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
             fillColor: "#444444",
             fillOpacity: 0.25,
             draggable: true,
             editable: true,
         });
 
-        if (polygons) setPolygons([...polygons, { id: polygonIdRef.current, polygon: poly }]);
-        else setPolygons([{ id: polygonIdRef.current, polygon: poly }]);
+        if (polygons) setPolygons([...polygons, { id: id, polygon: poly }]);
+        else setPolygons([{ id: id, polygon: poly }]);
 
-        const id = polygonIdRef.current;
         poly.addListener("click", () => props.setActiveId(id));
 
         // update polygon if vertices change
@@ -77,7 +64,7 @@ export default function DrawingTool(props: {
         });
 
         poly.setMap(map);
-        polygonIdRef.current = polygonIdRef.current + 1;
+        polygonIdRef.current = id + 1;
     }
 
     const deletePolygon = () => {

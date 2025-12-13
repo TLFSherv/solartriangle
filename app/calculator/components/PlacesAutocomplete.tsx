@@ -1,28 +1,7 @@
 import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
-
-type Suggestion = {
-    placePrediction: {
-        placeId: string;
-        text: { text: string };
-    };
-};
-
-type FormInputs = {
-    address: string;
-    location: { lat: number; lng: number } | null;
-    polygons: { id: number; polygon: google.maps.Polygon }[];
-    solarArrays: SolarArray[];
-}
-type SolarArray = {
-    id: number;
-    solarCapacity: number;
-    numberOfPanels: number;
-    area: number;
-    azimuth: number;
-    shape: google.maps.LatLng[];
-}
+import { FormInputs, Suggestion } from "../types/types";
 
 const PlacesAutocomplete = (props:
     {

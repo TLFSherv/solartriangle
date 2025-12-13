@@ -29,7 +29,7 @@ function latLngToXY(latLng: google.maps.LatLng, origin: google.maps.LatLng) {
 }
 
 export function getPolygonArea(polygon: google.maps.Polygon) {
-    return google.maps.geometry.spherical.computeArea(polygon.getPath());
+    return google.maps.geometry.spherical.computeArea(polygon.getPath().getArray());
 }
 
 export function getPolygonAzimuth(polygon: google.maps.Polygon) {
