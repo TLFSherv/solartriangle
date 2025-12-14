@@ -11,7 +11,7 @@ export default function TopicCard({ children, title }: { children: React.ReactNo
                     {title}
                 </h2>
             </div>
-            {isActive && <div className="bg-[#D9D9D9] text-black text-sm list-decimal list-inside space-y-6 p-4 rounded-b-md">
+            {isActive && <div className="bg-[#1E1E1E] text-sm list-decimal list-inside space-y-6 p-4 rounded-b-md">
                 {children}
             </div>
             }

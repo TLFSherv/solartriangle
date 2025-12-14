@@ -1,54 +1,60 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { fetchWeatherApi } from "openmeteo";
-import { data as calcData } from "../test-data/data";
+import { data } from "../test-data/data";
 
 type ParamObj = {
     lat: string;
     lng: string;
-    capacity: string;
+    capacity: number;
+    quantity: number;
     azimuth: number;
     tilt: number;
 }
 
-type Panel = {
-    polygon: {
-        lat: number;
-        lng: number;
-    }[];
+type SolarArray = {
+    id: number;
+    solarCapacity: number;
+    numberOfPanels: number;
     area: number;
     azimuth: number;
+    shape: { lat: number; lng: number; }[];
 }
 
 export default function useFetchData() {
-    const [data, setData] = useState([]);
+    const [result, setResult] = useState([]);
     // const [error, setError] = useState(null);
 
-    // const calcDataStr = localStorage.getItem("calculatorData");
-    // const calcData = JSON.parse(calcDataStr as string);
-
-    const params = calcData.panels.map((panel: Panel) => {
-        return {
-            lat: calcData.lat,
-            lng: calcData.lng,
-            capacity: calcData.capacity,
-            azimuth: panel.azimuth,
-            tilt: 30
-        }
-    })
+    // const formDataStr = localStorage.getItem("calculatorData");
+    // const formData = JSON.parse(formDataStr as string);
 
     useEffect(() => {
-        const fetchData = async () => {
-            let result: any = [];
-            params.forEach(async (param) => {
-                const pvWattsRes = await fetchPVWattsData(param);
-                const openmeteoRes = await fetchOpenMetoData(param);
-
-                result.push({ pvWattsRes, openmeteoRes });
+        function initInputData(): ParamObj[] {
+            return data.solarArrays.map((solarArray: SolarArray) => {
+                return {
+                    lat: data.lat,
+                    lng: data.lng,
+                    capacity: solarArray.solarCapacity,
+                    quantity: solarArray.numberOfPanels,
+                    azimuth: solarArray.azimuth,
+                    tilt: 30
+                }
             })
-            setData(result);
         }
 
         try {
+            const fetchData = async () => {
+                let result: any = [];
+                let apiParams = initInputData();
+
+                apiParams.forEach(async (param) => {
+                    const pvWattsResult = await fetchPVWattsData(param);
+                    const openmeteoResult = await fetchOpenMetoData(param);
+
+                    result.push({ pvWattsResult, openmeteoResult });
+                })
+                setResult(result);
+            }
+
             fetchData();
         } catch (err) {
             console.log(err);
@@ -56,12 +62,12 @@ export default function useFetchData() {
 
     }, [])
 
-    return { data }
+    return { result }
 }
 
 const fetchPVWattsData = async (param: ParamObj) => {
     const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
-    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}`;
+    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
     try {
         const res = await fetch(url);
         const json = await res.json();
@@ -78,7 +84,9 @@ const fetchOpenMetoData = async (param: ParamObj) => {
         longitude: param.lng,
         hourly: ["temperature_2m", "global_tilted_irradiance", "global_tilted_irradiance_instant"],
         tilt: param.tilt,
-        azimuth: param.azimuth,
+        azimuth: param.azimuth > 180 ? param.azimuth - 360 : param.azimuth, // convert to range -180 to 180 degrees
+        past_days: 3,
+        forecast_minutely_15: 96
     };
     const url = "https://api.open-meteo.com/v1/forecast";
     try {

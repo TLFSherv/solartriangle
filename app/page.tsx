@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="flex-1 flex flex-col space-y-30 sm:space-y-40 my-20">
       <section className='space-y-10 mx-8 z-[10]'>
-        <h1 className="static text-[54px]/16 sm:text-6xl md:text-7xl text-center tracking-wider font-[Space_Grotesk] text-[#F6513A]">
+        <h1 className="static text-[54px]/16 sm:text-6xl md:text-7xl text-center tracking-wider font-[Space_Grotesk] text-[#F0662A]">
           Master the Power of the Sun
         </h1>
         <div className="absolute right-0 top-75 mx-6 z-[-1]">
@@ -31,7 +31,7 @@ export default function Home() {
         <div className="absolute top-[-70] z-[-1]">
           <Image src={circles_lg} alt="circles" />
         </div>
-        <h2 className="static text-center text-[#F6513A] text-5xl font-[Darker_Grotesque]">
+        <h2 className="static text-center text-[#F0662A] text-5xl font-[Darker_Grotesque]">
           Benefits
         </h2>
         <ul className="text-center space-y-3 text-lg sm:text-xl font-[Space_Grotesk] font-light list-disc list-inside">
@@ -42,7 +42,7 @@ export default function Home() {
         </ul>
       </section>
       <section className='mx-auto mx-8 space-y-6'>
-        <h2 className="text-center text-[#F6513A] text-5xl font-[Darker_Grotesque]">
+        <h2 className="text-center text-[#F0662A] text-5xl font-[Darker_Grotesque]">
           Summary
         </h2>
         <p className="px-20 text-lg sm:text-xl text-center font-[Space_Grotesk] font-light">

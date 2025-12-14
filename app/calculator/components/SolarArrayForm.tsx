@@ -28,7 +28,7 @@ export default function SolarArrayForm(props: {
             shape.every((elem, i) => elem.lat === oldShape[i].lat && elem.lng === oldShape[i].lng);
 
         if (isUnchanged) return;
-        console.log('hello');
+
         const timeoutId = setTimeout(() => {
             const area = Number(getPolygonArea(poly).toFixed(2));
             const azimuth = Number(getPolygonAzimuth(poly).toFixed(2));
@@ -49,7 +49,7 @@ export default function SolarArrayForm(props: {
             }));
         }, 3000);
         return () => clearTimeout(timeoutId);
-    }, [props.inputs])
+    }, [props.inputs, activeId]);
 
     useEffect(() => {
         if (isEmpty) return;
