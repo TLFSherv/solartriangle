@@ -2,10 +2,11 @@
 import React from "react";
 import useFetchData from "./hooks/useFetchData";
 import { data } from "./test-data/data";
+import Chart from "./components/Chart";
 
 export default function Dashboard() {
-    const result = useFetchData();
-    console.log(result);
+    // const result = useFetchData();
+    // console.log(result);
 
     /*
    data in result = {
@@ -23,11 +24,11 @@ export default function Dashboard() {
     controls for selecting the time units
 
     */
+
     return (
-        <>
-            <h1>Anonymous users dashboard</h1>
-            {<h1>{data.address}</h1>}
-        </>
+        <div>
+            <Chart />
+        </div>
     )
 }
 
