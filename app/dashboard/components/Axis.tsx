@@ -1,12 +1,17 @@
 import { useMemo } from "react";
 import * as d3 from "d3";
 
-type Scale = {
+type Axis = {
     type: "x" | "y";
+    name: string;
     domain: [number, number];
     range: [number, number];
 }
-export default function Axis({ type, domain, range }: Scale) {
+export default function Axis({ type, name, domain, range }: Axis) {
+
+    const x = d3.scaleUtc([new Date("2025-12-18T00:00:00.000Z"),
+    new Date("2025-12-27T23:00:00.000Z")], [0, 632]);
+
     const ticks = useMemo(() => {
         const axisScale = d3.scaleLinear()
             .domain(domain)
@@ -28,11 +33,11 @@ export default function Axis({ type, domain, range }: Scale) {
             }))
     }, [domain.join("-"), range.join("-")]);
 
-    let height = 270;
     let pathShape, transform;
     let isX = type === "x";
+    let rangeTotal = range[0] + range[1];
     if (isX) {
-        pathShape = `M ${range[0]} ${height + 6} v -6 H ${range[1]} v 6`;
+        pathShape = `M ${range[0]} 6 v -6 H ${range[1]} v 6`;
         transform = "translateY(20px)";
     } else {
         pathShape = `M ${range[0]} ${range[0]} V ${range[1]}`;
@@ -44,24 +49,24 @@ export default function Axis({ type, domain, range }: Scale) {
             <path
                 d={pathShape}
                 fill="none"
-                stroke="currentColor"
+                stroke="#444444"
                 strokeWidth="2"
             />
             {ticks.map(({ value, offset }) => (
                 <g key={value}
                     transform={isX ?
-                        `translate(${offset}, ${height})` :
-                        `translate(4, ${range[1] + range[0] - offset})`}>
+                        `translate(${offset}, 0)` :
+                        `translate(4, ${rangeTotal - offset})`}>
                     <line
                         y2={isX ? 6 : 0}
                         x2={isX ? 0 : 6}
-                        stroke="currentColor" /> :
+                        stroke="#6E6E6E" /> :
                     <text
                         key={value}
                         stroke="currentColor"
                         style={{
                             fontSize: "10px",
-                            color: "white",
+                            color: "#FFFFFF",
                             textAnchor: "middle",
                             transform
                         }}>
@@ -70,6 +75,19 @@ export default function Axis({ type, domain, range }: Scale) {
                 </g>
             ))
             }
+            <g transform={isX ? `translate(${rangeTotal / 2}, 39)` :
+                `rotate(-90,-30,${rangeTotal / 2}) translate(-10, ${rangeTotal / 2})`}>
+                <text
+                    stroke="currentColor"
+                    style={{
+                        fontSize: "11px",
+                        color: "#FFFFFF",
+                        textAnchor: "middle",
+                        letterSpacing: "0.05em",
+                    }}>
+                    {name}
+                </text>
+            </g>
         </g >
     );
 }
