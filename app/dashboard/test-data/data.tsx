@@ -72,7 +72,7 @@ export const poa_monthly = [
     62.37254173686742,
     54.52529941681405
 ];
-"2025-12-18T00:00:00.000Z"
+
 export const time_daily = [
     "2025-12-18T00:00:00.000Z",
     "2025-12-18T01:00:00.000Z",
@@ -317,6 +317,7 @@ export const time_daily = [
 ];
 
 export const gti_daily = [
+    0,
     0,
     0,
     0,

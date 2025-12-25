@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 type TimeAxis = {
     unit: "hrs" | "days" | "months";
-    domain: [Date, Date];
+    domain: [Date, Date] | [number, number];
     range: [number, number];
 }
 export default function TimeAxis({ unit, domain, range }: TimeAxis) {
@@ -19,11 +19,13 @@ export default function TimeAxis({ unit, domain, range }: TimeAxis) {
         let options = {};
         if (unit === "days") options = { month: 'short', day: 'numeric' };
         else if (unit === "hrs") options = { hour: '2-digit', minute: '2-digit' };
-        else options = { month: 'short' };
+
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+            "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         return axisScale.ticks(numberOfTicksTarget)
-            .map((value: Date) => ({
-                value: value.toLocaleString(undefined, options),
+            .map((value, i) => ({
+                value: (unit === "months") ? months[i] : value.toLocaleString(undefined, options),
                 offset: axisScale(value)
             }))
     }, [domain.join("-"), range.join("-")]);
@@ -33,7 +35,7 @@ export default function TimeAxis({ unit, domain, range }: TimeAxis) {
             <path
                 d={`M ${range[0]} 6 v -6 H ${range[1]} v 6`}
                 fill="none"
-                stroke="white"
+                stroke="#444444"
                 strokeWidth="2"
             />
             {ticks.map(({ value, offset }, index) => (
