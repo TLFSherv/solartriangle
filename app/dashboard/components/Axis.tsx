@@ -8,10 +8,6 @@ type Axis = {
     range: [number, number];
 }
 export default function Axis({ type, name, domain, range }: Axis) {
-
-    const x = d3.scaleUtc([new Date("2025-12-18T00:00:00.000Z"),
-    new Date("2025-12-27T23:00:00.000Z")], [0, 632]);
-
     const ticks = useMemo(() => {
         const axisScale = d3.scaleLinear()
             .domain(domain)

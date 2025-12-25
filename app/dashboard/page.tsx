@@ -7,7 +7,7 @@ import ChartMenu from "./components/ChartMenu";
 import { useState } from "react";
 
 type Dataset = {
-    x: string[] | number[];
+    x: string[];
     y: number[];
     type: 'months' | 'hrs' | 'days';
 }
@@ -36,10 +36,8 @@ export default function Dashboard() {
     const [selected, setSelected] = useState<number[]>([1]);
     const dataset: Dataset[] = useMemo(() => filterData(time_daily), [time_daily]);
 
-    let months = [];
-    for (let i = 0; i < 12; i++) {
-        months.push(i);
-    }
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+        "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     let selectedDataset: Dataset;
     if (selected[0] === 0)

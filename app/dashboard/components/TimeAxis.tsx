@@ -2,13 +2,15 @@ import { useMemo } from "react";
 import * as d3 from "d3";
 
 type TimeAxis = {
+    x: string[];
     unit: "hrs" | "days" | "months";
     domain: [Date, Date] | [number, number];
     range: [number, number];
 }
-export default function TimeAxis({ unit, domain, range }: TimeAxis) {
+
+export default function TimeAxis({ x, unit, domain, range }: TimeAxis) {
     const ticks = useMemo(() => {
-        const axisScale = d3.scaleUtc()
+        const axisScale = d3.scaleLinear()
             .domain(domain)
             .range(range);
 
@@ -16,16 +18,23 @@ export default function TimeAxis({ unit, domain, range }: TimeAxis) {
         const pixelsPerTick = 50;
         const numberOfTicksTarget = Math.max(1, Math.floor(width / pixelsPerTick));
 
-        let options = {};
-        if (unit === "days") options = { month: 'short', day: 'numeric' };
-        else if (unit === "hrs") options = { hour: '2-digit', minute: '2-digit' };
+        const getUtcTime = (value: Date) => {
+            let result;
+            const hh = value.getUTCHours();
+            const mm = value.getUTCMinutes();
+            result = hh >= 10 ? `${hh}:` : `0${hh}:`
+            return result += mm > 10 ? `${mm}` : `0${mm}`;
+        }
 
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
-            "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const getValue = (value: string) => {
+            if (unit === 'hrs')
+                return getUtcTime(new Date(value))
+            return value
+        }
 
         return axisScale.ticks(numberOfTicksTarget)
             .map((value, i) => ({
-                value: (unit === "months") ? months[i] : value.toLocaleString(undefined, options),
+                value: getValue(x[i]),
                 offset: axisScale(value)
             }))
     }, [domain.join("-"), range.join("-")]);

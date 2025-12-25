@@ -2,10 +2,9 @@ import Axis from "./Axis"
 import TimeAxis from "./TimeAxis";
 import DataPoints from "./DataPoints";
 import useChartDimensions from "../hooks/useChartDimensions"
-import { data } from "../test-data/data";
 
 type Dataset = {
-    x: string[] | number[];
+    x: string[];
     y: number[];
     type: 'months' | 'hrs' | 'days';
 }
@@ -13,9 +12,12 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
     const chartSettings = { width: 0, height: 0 }
     const [ref, dms] = useChartDimensions(chartSettings);
 
-    let xDomain: [Date, Date] | [number, number];
-    if (dataset.type === 'months') xDomain = [dataset.x[0] as number, dataset.x.at(-1) as number];
-    else xDomain = [new Date(dataset.x[0]), new Date(dataset.x.at(-1) as string)];
+    let size: number;
+    if (dataset.type === 'hrs') size = 24;
+    else if (dataset.type === 'days') size = 240;
+    else size = 11;
+
+    const xDomain: [number, number] = [0, size];
     const yDomain: [number, number] = [Math.min(...dataset.y), Math.max(...dataset.y)];
 
     const position = { x: 38, y: 0 } // origin position
@@ -29,6 +31,7 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
                 <g transform={`translate(${position.x},${position.y})`}>
                     <g transform={`translate(0,${boundedHeight})`}>
                         <TimeAxis
+                            x={dataset.x}
                             unit={dataset.type}
                             domain={xDomain}
                             range={[10, boundedWidth]} />
