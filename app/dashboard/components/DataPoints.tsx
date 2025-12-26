@@ -14,7 +14,7 @@ type Dataset = {
 }
 export default function DataPoints(props: DataPoints) {
     const { dataset, settings, domain, range } = props;
-    console.log(domain.x)
+
     const xScale = d3.scaleLinear()
         .domain(domain.x)
         .range(range.x);

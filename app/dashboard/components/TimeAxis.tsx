@@ -16,25 +16,27 @@ export default function TimeAxis({ x, unit, domain, range }: TimeAxis) {
 
         const width = range[1] - range[0];
         const pixelsPerTick = 50;
-        const numberOfTicksTarget = Math.max(1, Math.floor(width / pixelsPerTick));
+        let numberOfTicksTarget = Math.max(1, Math.floor(width / pixelsPerTick));
+        numberOfTicksTarget = unit === 'days' ? Math.min(numberOfTicksTarget, 7) : numberOfTicksTarget;
 
-        const getUtcTime = (value: Date) => {
-            let result;
-            const hh = value.getUTCHours();
-            const mm = value.getUTCMinutes();
-            result = hh >= 10 ? `${hh}:` : `0${hh}:`
-            return result += mm > 10 ? `${mm}` : `0${mm}`;
-        }
-
-        const getValue = (value: string) => {
-            if (unit === 'hrs')
-                return getUtcTime(new Date(value))
+        const getLabelValues = (value: string) => {
+            const date = new Date(value);
+            if (unit === 'hrs') {
+                const hh = date.getUTCHours();
+                return hh >= 10 ? `${hh}:00` : `0${hh}:00`
+            }
+            else if (unit === 'days') {
+                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const dd = date.getUTCDate();
+                const day = days[date.getUTCDay()];
+                return dd >= 10 ? `${day} ${dd}` : `${day} 0${dd}`;
+            }
             return value
         }
 
         return axisScale.ticks(numberOfTicksTarget)
-            .map((value, i) => ({
-                value: getValue(x[i]),
+            .map((value) => ({
+                value: getLabelValues(x[value]),
                 offset: axisScale(value)
             }))
     }, [domain.join("-"), range.join("-")]);

@@ -67,7 +67,7 @@ export default function useFetchData() {
 
 const fetchPVWattsData = async (param: ParamObj) => {
     const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
-    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}`;
+    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
     try {
         const res = await fetch(url);
         const json = await res.json();

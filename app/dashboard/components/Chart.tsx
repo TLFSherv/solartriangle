@@ -12,12 +12,7 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
     const chartSettings = { width: 0, height: 0 }
     const [ref, dms] = useChartDimensions(chartSettings);
 
-    let size: number;
-    if (dataset.type === 'hrs') size = 24;
-    else if (dataset.type === 'days') size = 240;
-    else size = 11;
-
-    const xDomain: [number, number] = [0, size];
+    const xDomain: [number, number] = [0, dataset.x.length - 1];
     const yDomain: [number, number] = [Math.min(...dataset.y), Math.max(...dataset.y)];
 
     const position = { x: 38, y: 0 } // origin position
