@@ -83,6 +83,7 @@ const fetchOpenMetoData = async (param: ParamObj) => {
         latitude: param.lat,
         longitude: param.lng,
         hourly: ["temperature_2m", "global_tilted_irradiance", "global_tilted_irradiance_instant"],
+        timezone: 'AST',
         tilt: param.tilt,
         azimuth: param.azimuth > 180 ? param.azimuth - 360 : param.azimuth, // convert to range -180 to 180 degrees
         past_days: 3,

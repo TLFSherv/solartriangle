@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 import useFetchData from "./hooks/useFetchData";
-import usePrepareData from "./hooks/usePrepareData";
+import useFormatData from "./hooks/useFormatData";
 import Chart from "./components/Chart";
 import ChartMenu from "./components/ChartMenu";
 
@@ -28,7 +28,7 @@ export default function Dashboard() {
     */
 
     const [selected, setSelected] = useState<number[]>([0]);
-    const dataset = usePrepareData(selected);
+    const dataset = useFormatData(selected);
 
     return (
         <div className="h-[100px] w-full">

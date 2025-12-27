@@ -19,7 +19,7 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
     const margin = { x: 8, y: 40 };
     const boundedWidth = dms.width - position.x - margin.x;
     const boundedHeight = dms.height - position.y - margin.y;
-
+    const unit = dataset.type === 'months' ? 'kWh/m2' : 'Wh/m2';
     return (
         <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] sm:w-3/4 h-[320px] mx-auto">
             <svg width={dms.width} height={dms.height}>
@@ -33,7 +33,7 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
                     </g>
                     <Axis
                         type={"y"}
-                        name="poa"
+                        name={`poa ${unit}`}
                         domain={yDomain}
                         range={[10, boundedHeight]}
                     />

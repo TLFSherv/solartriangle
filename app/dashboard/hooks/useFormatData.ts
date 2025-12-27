@@ -6,7 +6,7 @@ type Dataset = {
     y: number[];
     type: 'months' | 'hrs' | 'days';
 }
-export default function usePrepareData(selected: number[]) {
+export default function useFormatData(selected: number[]) {
     const result = useMemo(() => {
         const getDataByDay = (): Dataset => {
             let prevDate: Date = new Date(time_daily[0]);
@@ -35,6 +35,7 @@ export default function usePrepareData(selected: number[]) {
             })
             return dailyData;
         }
+
         const getDataByMonth = (): Dataset => {
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
                 "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -62,7 +63,7 @@ export default function usePrepareData(selected: number[]) {
                 dayOfMonth.push(`${months[m]} ${i + 1}`);
             }
 
-            return { x: dayOfMonth, y: dailyPoaByMonth, type: 'months' };
+            return { x: dayOfMonth, y: dailyPoaByMonth, type: 'days' };
         }
         return (selected[0] === 0) ? getDataByDay() : getDataByMonth()
     }, [selected.join("-")])

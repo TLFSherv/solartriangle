@@ -14,7 +14,7 @@ type Dataset = {
 }
 export default function DataPoints(props: DataPoints) {
     const { dataset, settings, domain, range } = props;
-
+    let yCoord = 0, points = "";
     const xScale = d3.scaleLinear()
         .domain(domain.x)
         .range(range.x);
@@ -24,15 +24,19 @@ export default function DataPoints(props: DataPoints) {
 
     return (
         <g>
-            {dataset.y.map((y, i) => (
-                <circle
+            {dataset.y.map((y, i) => {
+                yCoord = settings.height - yScale(y) + range.y[0];
+                points += `${xScale(i)}, ${yCoord} `;
+                return <circle
                     key={i}
                     cx={xScale(i)}
-                    cy={settings.height - yScale(y) + range.y[0]}
+                    cy={yCoord}
                     r="3"
                     fill="white"
                 />
-            ))}
+            })}
+            <polyline points={points} fill="none" stroke="white" />
         </g>
+
     )
 }
