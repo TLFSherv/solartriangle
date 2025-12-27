@@ -26,17 +26,29 @@ export default function Dashboard() {
     controls for selecting the time units
 
     */
-
+    const [displayId, setDisplayId] = useState<number>(0);
     const [selected, setSelected] = useState<number[]>([0]);
     const dataset = useFormatData(selected);
-
+    const titles = ['Plane of array (poa)', 'Power Output (ac)', 'Power loss'];
     return (
-        <div className="h-[100px] w-full">
-            <ChartMenu
-                selected={selected}
-                setSelected={setSelected} />
-            <Chart dataset={dataset} />
+
+        <div className="space-y-4 text-center">
+            <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
+            <div className="flex justify-center gap-4">
+                <input className="accent-black" type='radio' id="poa" name="data" onClick={() => setDisplayId(0)} />
+                <input className="accent-black" type='radio' id="ac_output" name="data" onClick={() => setDisplayId(1)} />
+                <input className="accent-black" type='radio' id="temp" name="data" onClick={() => setDisplayId(2)} />
+            </div>
+            <h1 className="text-2xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">{titles[displayId]}</h1>
+
+            <div className="w-full">
+                <ChartMenu
+                    selected={selected}
+                    setSelected={setSelected} />
+                <Chart dataset={dataset} />
+            </div>
         </div>
+
     )
 }
 
