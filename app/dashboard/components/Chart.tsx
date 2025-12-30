@@ -2,12 +2,8 @@ import Axis from "./Axis"
 import TimeAxis from "./TimeAxis";
 import DataPoints from "./DataPoints";
 import useChartDimensions from "../hooks/useChartDimensions"
+import { Dataset } from "../types/types";
 
-type Dataset = {
-    x: string[];
-    y: number[];
-    type: 'months' | 'hrs' | 'days';
-}
 export default function Chart({ dataset }: { dataset: Dataset }) {
     const chartSettings = { width: 0, height: 0 }
     const [ref, dms] = useChartDimensions(chartSettings);
@@ -19,7 +15,6 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
     const margin = { x: 8, y: 40 };
     const boundedWidth = dms.width - position.x - margin.x;
     const boundedHeight = dms.height - position.y - margin.y;
-    const unit = dataset.type === 'months' ? 'kWh/m2' : 'Wh/m2';
     return (
         <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] sm:w-3/4 h-[320px] mx-auto">
             <svg width={dms.width} height={dms.height}>
@@ -33,7 +28,7 @@ export default function Chart({ dataset }: { dataset: Dataset }) {
                     </g>
                     <Axis
                         type={"y"}
-                        name={`poa ${unit}`}
+                        name={dataset.name}
                         domain={yDomain}
                         range={[10, boundedHeight]}
                     />

@@ -82,12 +82,12 @@ const fetchOpenMetoData = async (param: ParamObj) => {
     const fetchParams = {
         latitude: param.lat,
         longitude: param.lng,
-        hourly: ["temperature_2m", "global_tilted_irradiance", "global_tilted_irradiance_instant"],
+        hourly: ["temperature_2m", "global_tilted_irradiance", "wind_speed_10m"],
         timezone: 'AST',
         tilt: param.tilt,
         azimuth: param.azimuth > 180 ? param.azimuth - 360 : param.azimuth, // convert to range -180 to 180 degrees
         past_days: 3,
-        forecast_minutely_15: 96
+        forecast_minutely_15: 96 // the number of 15min time steps the data is controlled
     };
     const url = "https://api.open-meteo.com/v1/forecast";
     try {
@@ -105,7 +105,7 @@ const fetchOpenMetoData = async (param: ParamObj) => {
                 ),
                 temperature_2m: hourly.variables(0)!.valuesArray(),
                 global_tilted_irradiance: hourly.variables(1)!.valuesArray(),
-                global_tilted_irradiance_instant: hourly.variables(2)!.valuesArray(),
+                wind_speed_10m: hourly.variables(2)!.valuesArray(),
             },
         };
     } catch (err) {
