@@ -29,9 +29,8 @@ export default function Dashboard() {
     const [dataId, setDataId] = useState<number>(0);
     const [timeId, setTimeId] = useState<number[]>([0]);
     const dataset = useFormatData(dataId, timeId);
-    const titles = ['Plane of array (poa)', 'Power Output', 'Power loss %'];
+    const titles = ['Plane of array (poa)', 'Power Output', 'Power loss'];
     return (
-
         <div className="space-y-4 text-center">
             <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
             <div className="flex justify-center gap-4">
@@ -39,8 +38,9 @@ export default function Dashboard() {
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(1)} />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(2)} />
             </div>
-            <h1 className="text-2xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">{titles[dataId]}</h1>
-
+            <h1 className="text-2xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">
+                {titles[dataId]}
+            </h1>
             <div className="w-full">
                 <ChartMenu
                     timeId={timeId}
