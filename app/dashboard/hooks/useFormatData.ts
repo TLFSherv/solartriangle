@@ -4,8 +4,16 @@ import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } fro
 import { Dataset } from "../types/types";
 
 export default function useFormatData(dataId: number, timeId: number[]) {
-    const names = [['poa kW/m2', 'poa W/m2'], ['power kW', 'power W'], ['losses W', 'losses W']];
-    const dataName = names[dataId][timeId.length - 1];
+    // coord3 = timeId.length > 1 ? 1 : 0;
+    // [dataId,timeId[0],coord3]
+    // [0,0,0] -> kW/m2 | [0,0,1] -> W/m2 | [0,1,0] -> kW/m2 | [0,1,1] -> kW/m2 
+    // [1,0,0] -> kW | [1,0,1] -> W | [1,1,0] -> kW | [1,1,1] -> kW
+    // [2,0,0] -> W | [2,0,1] -> W | [2,1,0] -> kW | [2,1,1] -> W
+    let isLevelTwo = timeId.length > 1;
+    const names = [['poa kW/m2', 'poa W/m2'], ['power kW', 'power W'], ['losses kW', 'losses W']];
+    let dataName = (timeId[0] === 0 && isLevelTwo) ? names[dataId][1] : names[dataId][0];
+    if (dataId === 2) dataName = (timeId[0] === 1 && !isLevelTwo) ? names[dataId][0] : names[dataId][1];
+
 
     const data = useMemo(() => {
         const area = 10;
@@ -45,10 +53,11 @@ export default function useFormatData(dataId: number, timeId: number[]) {
             if (timeId.length > 1) return dailyData[timeId[1]];
 
             let dailyDataTotals: Dataset = { x: [], y: [], type: "days", name: dataName };
-            dailyData.forEach(({ x, y }) => {
+            dailyData.forEach(({ x, y },) => {
                 dailyDataTotals.x.push(x[0])
-                const dailyTotal = y.reduce((acc, current) => acc + current)
-                dailyDataTotals.y.push(Math.round(dailyTotal));
+                let dailyTotal = y.reduce((acc, current) => acc + current)
+                if (dataId !== 2) dailyTotal = Math.round(dailyTotal) / 1000;
+                dailyDataTotals.y.push(dailyTotal);
             })
 
             return dailyDataTotals;
@@ -76,7 +85,8 @@ export default function useFormatData(dataId: number, timeId: number[]) {
             let dataDayTotal = 0;
             for (let i = 0; i < daysPerMonth[m]; ++i) {
                 dataDayTotal = monthlyData[m].slice(i * 24, (i + 1) * 24).reduce((a, b) => a + b);
-                dailyPoaByMonth.push(Math.round(dataDayTotal))
+                if (dataId !== 2) dataDayTotal = Math.round(dataDayTotal) / 1000;
+                dailyPoaByMonth.push(dataDayTotal);
                 dayOfMonth.push(`${months[m]} ${i + 1}`);
             }
             return { x: dayOfMonth, y: dailyPoaByMonth, type: 'days', name: dataName };

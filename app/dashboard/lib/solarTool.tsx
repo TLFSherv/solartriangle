@@ -27,7 +27,8 @@ export function reduceDataByMonth(data: number[]) {
     // sum all the data in one month
     daysPerMonth.forEach((days, i) => {
         start += daysPerMonth[i - 1] * 24 || 0;
-        monthlyData.push(data.slice(start, start + days * 24).reduce((acc, cur) => acc + cur));
+        let result = data.slice(start, start + days * 24).reduce((acc, cur) => acc + cur);
+        monthlyData.push(Math.round(result));
     });
     return monthlyData;
 }
