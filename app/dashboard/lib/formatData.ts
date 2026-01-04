@@ -1,19 +1,31 @@
 import { useMemo } from "react";
-import { poa_months, ac_months, time_week, gti_week, windSpeed_week, temp_week, cellTemp_year, poa_year, ac_year } from "../test-data/data";
-import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } from "../lib/solarTool";
+import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } from "./solarTool";
 import { Dataset } from "../types/types";
 
-export default function useFormatData(dataId: number, timeId: number[]) {
-    // coord3 = timeId.length > 1 ? 1 : 0;
-    // [dataId,timeId[0],coord3]
-    // [0,0,0] -> kW/m2 | [0,0,1] -> W/m2 | [0,1,0] -> kW/m2 | [0,1,1] -> kW/m2 
-    // [1,0,0] -> kW | [1,0,1] -> W | [1,1,0] -> kW | [1,1,1] -> kW
-    // [2,0,0] -> W | [2,0,1] -> W | [2,1,0] -> kW | [2,1,1] -> W
-    let isLevelTwo = timeId.length > 1;
+export default function formatData(inputData: any[], dataId: number, timeId: number[]) {
+    const selectedOnce = timeId.length === 1;
+    const check1 = (timeId[0] !== 0 || selectedOnce); // conditions to use kWh for Power and Irradiance data
+    const check2 = (dataId === 2 && timeId[0] === 1 && selectedOnce); // conditons for using kWh for Losses data
+    const check3 = check1 && dataId !== 2;
     const names = [['poa kW/m2', 'poa W/m2'], ['power kW', 'power W'], ['losses kW', 'losses W']];
-    let dataName = (timeId[0] === 0 && isLevelTwo) ? names[dataId][1] : names[dataId][0];
-    if (dataId === 2) dataName = (timeId[0] === 1 && !isLevelTwo) ? names[dataId][0] : names[dataId][1];
+    let dataName = check1 ? names[dataId][0] : names[dataId][1];
+    if (dataId === 2) dataName = check2 ? names[dataId][0] : names[dataId][1];
 
+    const { openmeteo, pvwatts } = inputData[0];
+
+    const {
+        global_tilted_irradiance: gti_week,
+        time: time_week,
+        wind_speed_10m: windSpeed_week,
+        temperature_2m: temp_week } = openmeteo.hourly;
+
+    const {
+        ac_monthly,
+        poa_monthly,
+        tamb: cellTemp_year,
+        poa: poa_year,
+        ac: ac_year
+    } = pvwatts.outputs;
 
     const data = useMemo(() => {
         const area = 10;
@@ -22,11 +34,12 @@ export default function useFormatData(dataId: number, timeId: number[]) {
 
         const losses_week = getEnergyLosses(area, gti_week, cellTemps);
         const losses_year = getEnergyLosses(area, poa_year, cellTemp_year);
-        const losses_months = reduceDataByMonth(losses_year);
+        const losses_monthly = reduceDataByMonth(losses_year).
+            map(d => check2 ? d / 1000 : d);
 
         return {
             week: [gti_week, power_week, losses_week],
-            month: [poa_months, ac_months, losses_months,],
+            month: [poa_monthly, ac_monthly, losses_monthly,],
             year: [poa_year, ac_year, losses_year]
         };
     }, []);
@@ -53,11 +66,11 @@ export default function useFormatData(dataId: number, timeId: number[]) {
             if (timeId.length > 1) return dailyData[timeId[1]];
 
             let dailyDataTotals: Dataset = { x: [], y: [], type: "days", name: dataName };
+            let dailyTotal = 0;
             dailyData.forEach(({ x, y },) => {
                 dailyDataTotals.x.push(x[0])
-                let dailyTotal = y.reduce((acc, current) => acc + current)
-                if (dataId !== 2) dailyTotal = Math.round(dailyTotal) / 1000;
-                dailyDataTotals.y.push(dailyTotal);
+                dailyTotal = y.reduce((acc, current) => acc + current)
+                dailyDataTotals.y.push((check2 || check3) ? Math.round(dailyTotal) / 1000 : dailyTotal);
             })
 
             return dailyDataTotals;
@@ -85,13 +98,13 @@ export default function useFormatData(dataId: number, timeId: number[]) {
             let dataDayTotal = 0;
             for (let i = 0; i < daysPerMonth[m]; ++i) {
                 dataDayTotal = monthlyData[m].slice(i * 24, (i + 1) * 24).reduce((a, b) => a + b);
-                if (dataId !== 2) dataDayTotal = Math.round(dataDayTotal) / 1000;
-                dailyPoaByMonth.push(dataDayTotal);
+                dailyPoaByMonth.push((check2 || check3) ? Math.round(dataDayTotal) / 1000 : dataDayTotal);
                 dayOfMonth.push(`${months[m]} ${i + 1}`);
             }
             return { x: dayOfMonth, y: dailyPoaByMonth, type: 'days', name: dataName };
         }
         return (timeId[0] === 0) ? getDailyData() : getMonthlyData()
     }, [timeId.join("-"), dataId])
+
     return result;
 }

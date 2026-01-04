@@ -1,15 +1,8 @@
-"use client"
-import { useState } from "react";
-import useFetchData from "./hooks/useFetchData";
-import useFormatData from "./hooks/useFormatData";
+//import { useState } from "react";
+import getData from "./lib/getData";
 import Chart from "./components/Chart";
-import ChartMenu from "./components/ChartMenu";
 
-
-export default function Dashboard() {
-    // const result = useFetchData();
-    // console.log(result);
-
+export default async function Dashboard() {
     /*
    data in result = {
    pvwatts:[poa_monthly, ac_monthly, ac_annual, solrad_monthly, hr ac output, hr poa],
@@ -22,33 +15,12 @@ export default function Dashboard() {
    poa vs time (monthly, daily, hourly) [also show past data]
    temp/loss vs time (monthly, daily, hourly)
    ac output vs time (monthly, daily, hourly) - bar graph showing % of total produced at a give time 
-
-    controls for selecting the time units
-
     */
-    const [dataId, setDataId] = useState<number>(0);
-    const [timeId, setTimeId] = useState<number[]>([0]);
-    const dataset = useFormatData(dataId, timeId);
-    const titles = ['Plane of array (poa)', 'Power Output', 'Power loss'];
+    const data = await getData();
     return (
-        <div className="space-y-4 text-center">
-            <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
-            <div className="flex justify-center gap-4">
-                <input className="accent-black" type='radio' name="data" onClick={() => setDataId(0)} defaultChecked />
-                <input className="accent-black" type='radio' name="data" onClick={() => setDataId(1)} />
-                <input className="accent-black" type='radio' name="data" onClick={() => setDataId(2)} />
-            </div>
-            <h1 className="text-2xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">
-                {titles[dataId]}
-            </h1>
-            <div className="w-full">
-                <ChartMenu
-                    timeId={timeId}
-                    setTimeId={setTimeId} />
-                <Chart dataset={dataset} />
-            </div>
+        <div>
+            <Chart data={data} />
         </div>
-
     )
 }
 

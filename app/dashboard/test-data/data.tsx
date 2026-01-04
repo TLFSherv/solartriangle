@@ -1,4 +1,4 @@
-export const data = {
+export const inputs = {
     "address": "5 Paget Drive",
     "lat": "32.2736211",
     "lng": "-64.7866569",

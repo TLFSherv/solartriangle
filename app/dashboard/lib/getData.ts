@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { fetchWeatherApi } from "openmeteo";
-import { data } from "../test-data/data";
+import { inputs } from "../test-data/data";
 
 type ParamObj = {
     lat: string;
@@ -20,57 +19,39 @@ type SolarArray = {
     shape: { lat: number; lng: number; }[];
 }
 
-export default function useFetchData() {
-    const [result, setResult] = useState([]);
-    // const [error, setError] = useState(null);
-
+export default async function getData() {
     // const formDataStr = localStorage.getItem("calculatorData");
     // const formData = JSON.parse(formDataStr as string);
-
-    useEffect(() => {
-        function initInputData(): ParamObj[] {
-            return data.solarArrays.map((solarArray: SolarArray) => {
-                return {
-                    lat: data.lat,
-                    lng: data.lng,
-                    capacity: solarArray.solarCapacity,
-                    quantity: solarArray.numberOfPanels,
-                    azimuth: solarArray.azimuth,
-                    tilt: 30
-                }
-            })
-        }
-
-        try {
-            const fetchData = async () => {
-                let result: any = [];
-                let apiParams = initInputData();
-
-                apiParams.forEach(async (param) => {
-                    const pvWattsResult = await fetchPVWattsData(param);
-                    const openmeteoResult = await fetchOpenMetoData(param);
-
-                    result.push({ pvWattsResult, openmeteoResult });
-                })
-                setResult(result);
+    const initParams = (): ParamObj[] => {
+        return inputs.solarArrays.map((solarArray: SolarArray) => {
+            return {
+                lat: inputs.lat,
+                lng: inputs.lng,
+                capacity: solarArray.solarCapacity,
+                quantity: solarArray.numberOfPanels,
+                azimuth: solarArray.azimuth,
+                tilt: 30
             }
+        })
+    }
 
-            fetchData();
-        } catch (err) {
-            console.log(err);
-        }
+    const params = initParams();
+    let result: any[] = []
+    for (const p of params) {
+        const pvwatts = await fetchPVWattsData(p);
+        const openmeteo = await fetchOpenMetoData(p);
+        result.push({ pvwatts, openmeteo })
+    }
 
-    }, [])
-
-    return { result }
+    return result;;
 }
 
 const fetchPVWattsData = async (param: ParamObj) => {
     const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
     const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
     try {
-        const res = await fetch(url);
-        const json = await res.json();
+        const response = await fetch(url);
+        const json = await response.json();
         return json;
 
     } catch (err) {
