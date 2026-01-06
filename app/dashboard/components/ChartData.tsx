@@ -4,12 +4,17 @@ import DataPoints from "./DataPoints";
 import useChartDimensions from "../hooks/useChartDimensions"
 import { Dataset } from "../types/types";
 
-export default function ChartData({ dataset }: { dataset: Dataset }) {
+export default function ChartData({ dataset }: { dataset: Dataset[] }) {
     const chartSettings = { width: 0, height: 0 }
     const [ref, dms] = useChartDimensions(chartSettings);
-
-    const xDomain: [number, number] = [0, dataset.x.length - 1];
-    const yDomain: [number, number] = [Math.min(...dataset.y), Math.max(...dataset.y)];
+    let minY = 1000, maxY = 0, value = [0, 0];
+    for (let d of dataset) {
+        value = [Math.min(...d.y), Math.max(...d.y)];
+        if (value[0] < minY) minY = value[0];
+        if (value[1] > maxY) maxY = value[1];
+    }
+    const xDomain: [number, number] = [0, dataset[0].x.length - 1];
+    const yDomain: [number, number] = [minY, maxY];
 
     const position = { x: 38, y: 0 } // origin position
     const margin = { x: 8, y: 40 };
@@ -21,23 +26,25 @@ export default function ChartData({ dataset }: { dataset: Dataset }) {
                 <g transform={`translate(${position.x},${position.y})`}>
                     <g transform={`translate(0,${boundedHeight})`}>
                         <TimeAxis
-                            x={dataset.x}
-                            unit={dataset.type}
+                            x={dataset[0].x}
+                            unit={dataset[0].type}
                             domain={xDomain}
                             range={[10, boundedWidth]} />
                     </g>
                     <Axis
                         type={"y"}
-                        name={dataset.name}
+                        name={dataset[0].name}
                         domain={yDomain}
                         range={[10, boundedHeight]}
                     />
-                    <DataPoints
-                        dataset={dataset}
+                    {dataset.map((data, i) => <DataPoints
+                        key={i}
+                        dataset={data}
+                        colorId={i}
                         settings={{ height: boundedHeight, width: boundedWidth }}
                         domain={{ x: xDomain, y: yDomain }}
                         range={{ x: [10, boundedWidth], y: [10, boundedHeight] }}
-                    />
+                    />)}
                 </g>
             </svg >
         </div >
