@@ -40,7 +40,7 @@ export default function ChartData({ dataset }: { dataset: Dataset[] }) {
                     {dataset.map((data, i) => <DataPoints
                         key={i}
                         dataset={data}
-                        colorId={i}
+                        id={i}
                         settings={{ height: boundedHeight, width: boundedWidth }}
                         domain={{ x: xDomain, y: yDomain }}
                         range={{ x: [10, boundedWidth], y: [10, boundedHeight] }}

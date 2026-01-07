@@ -36,7 +36,7 @@ export default function formatData(inputData: any[], dataId: number, timeId: num
             map(d => check2 ? d / 1000 : d);
 
         return {
-            week: [gti_week, power_week, losses_week],
+            week: [Array.from(gti_week), Array.from(power_week), Array.from(losses_week)],
             month: [poa_monthly, ac_monthly, losses_monthly,],
             year: [poa_year, ac_year, losses_year]
         };
@@ -52,7 +52,7 @@ export default function formatData(inputData: any[], dataId: number, timeId: num
             let prevDate: Date = new Date(time_week[0]);
             let dailyData: Dataset[] = Array(7).fill({ x: [], y: [], type: 'hrs', name: dataName });
             let start = 0;
-            console.log(dailyData);
+
             // group data by date
             for (let i = 0; i < time_week.length; ++i) {
                 let date = new Date(time_week[i]);
