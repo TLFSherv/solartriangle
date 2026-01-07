@@ -57,6 +57,10 @@ export const inputs = {
     ]
 }
 
+export const ac_annual = [397417.4573941223, 360759.9608115184];
+export const solrad_annual = [4.047168216173767, 3.705585143074269];
+export const capacity_factor = [12.96208275910377, 11.7664696937873];
+
 export const poa_months = [
     55.06420403043554,
     70.92849064383147,
