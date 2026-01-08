@@ -1,6 +1,8 @@
 import { fetchWeatherApi } from "openmeteo";
 import { inputs } from "../test-data/data";
 
+export const revalidate = 600
+
 type ParamObj = {
     lat: string;
     lng: string;
@@ -18,7 +20,7 @@ type SolarArray = {
     azimuth: number;
     shape: { lat: number; lng: number; }[];
 }
-
+// chache server function but revalidate data based on time
 export default async function getData() {
     // const formDataStr = localStorage.getItem("calculatorData");
     // const formData = JSON.parse(formDataStr as string);
@@ -27,7 +29,7 @@ export default async function getData() {
             return {
                 lat: inputs.lat,
                 lng: inputs.lng,
-                capacity: solarArray.solarCapacity,
+                capacity: (solarArray.solarCapacity / 1000) * solarArray.numberOfPanels,
                 quantity: solarArray.numberOfPanels,
                 azimuth: solarArray.azimuth,
                 tilt: 30
@@ -50,7 +52,7 @@ const fetchPVWattsData = async (param: ParamObj) => {
     const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
     const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { next: { revalidate: 600 } });
         const json = await response.json();
         return json;
 
