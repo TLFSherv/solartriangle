@@ -17,7 +17,7 @@ export default function GoogleMap() {
                     mapId={'f0d837b3785689636fe8a7cc'}
                 >
                 </Map>
-                <PolygonPanels />
+                {/* <PolygonPanels /> */}
             </APIProvider>
         </div>
     )

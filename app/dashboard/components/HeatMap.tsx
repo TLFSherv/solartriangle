@@ -32,6 +32,7 @@ export default function HeatMap({ data, dataId, dataRanges }:
                 <defs>
                     <linearGradient id="Gradient1">
                         {colorProps.map(color => <stop
+                            key={color.offset}
                             offset={`${color.offset}%`}
                             stopColor={color.stopColor}
                         />
