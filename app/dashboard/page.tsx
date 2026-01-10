@@ -20,7 +20,6 @@ export default async function Dashboard() {
    ac output vs time (monthly, daily, hourly) - bar graph showing % of total produced at a give time 
     */
     const data = await getData();
-    console.log(data);
     return (
         <div className="space-y-8">
             <Map data={data} />
