@@ -3,11 +3,9 @@ import React from "react";
 import * as d3 from "d3";
 import Axis from "./Axis"
 import useChartDimensions from "../hooks/useChartDimensions"
+import { colors } from '../lib/dataTools'
+import { ColorGradient } from '../types/types'
 
-type ColorGradient = {
-    offset: number;
-    stopColor: string;
-}[]
 
 export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
     {
@@ -27,9 +25,6 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
         .domain(dataRanges[dataId])
         .range([10, boundedWidth]);
 
-    const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];
-
-
     return (
         <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] h-[140px] mx-auto">
             <svg width={dms.width} height={dms.height} >
@@ -39,8 +34,7 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
                             key={color.offset}
                             offset={`${color.offset}%`}
                             stopColor={color.stopColor}
-                        />
-                        )}
+                        />)}
                     </linearGradient>
                 </defs>
                 <g transform={`translate(${position.x},${position.y})`}>

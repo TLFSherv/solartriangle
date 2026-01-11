@@ -3,6 +3,7 @@ import { Map, APIProvider } from '@vis.gl/react-google-maps';
 import { useMap } from '@vis.gl/react-google-maps';
 import { inputs } from "../test-data/data";
 import { useEffect, useRef } from 'react';
+import { colors } from '../lib/dataTools'
 
 export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
 
@@ -27,7 +28,6 @@ export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
 function PolygonPanels({ dataColors }: { dataColors: string[] }) {
     const map = useMap();
     const polygons = useRef<google.maps.Polygon[]>([]);
-    const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];
 
     useEffect(() => {
         if (!map) return;
