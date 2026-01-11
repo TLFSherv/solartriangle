@@ -24,9 +24,11 @@ export default function ChartMenu({ dataId, setDataId, timeId, setTimeId }:
     ];
     return (
         <div className="space-y-5">
-            <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
+            <p className="font-[Space_Grotesk] px-4 text-sm text-gray-400">
+                Change the data displayed with the buttons below:
+            </p>
             <div className="flex justify-center gap-4">
-                <input className="accent-black" type='radio' name="data" onClick={() => setDataId(0)} defaultChecked />
+                <input className="accent-black bg-[#B7B7B7]" type='radio' name="data" onClick={() => setDataId(0)} defaultChecked />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(1)} />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(2)} />
             </div>
@@ -34,13 +36,13 @@ export default function ChartMenu({ dataId, setDataId, timeId, setTimeId }:
                 {chartTitles[dataId]}
             </h1>
             <div className="space-y-2 mb-4">
-                <ol className="flex justify-center divide-x-2 divide-[#444444]">
+                <ol className="flex justify-center divide-x-2 divide-[#444444] text-gray-400">
                     <li className={`px-4 cursor-pointer ${timeId[0] === 0 ? "text-[#0BAFF5]" : ""}`}
                         onClick={() => setTimeId([0])}>d</li>
                     <li className={`px-4 cursor-pointer ${timeId[0] === 1 ? "text-[#0BAFF5]" : ""}`}
                         onClick={() => setTimeId([1])}>m</li>
                 </ol>
-                <ol className="flex mx-auto divide-x-1 divide-[#444444] text-sm overflow-auto whitespace-nowrap h-[32px] w-[140px]">
+                <ol className="flex mx-auto divide-x-1 divide-[#444444] text-sm text-gray-500 overflow-auto whitespace-nowrap h-[32px] w-[140px]">
                     {timeMenu[timeId[0]]}
                 </ol>
             </div>

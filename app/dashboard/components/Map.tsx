@@ -33,7 +33,7 @@ function MapMenu({ dataId, setDataId }:
         'Solar Capacity Factor'];
     return (
         <div className="space-y-5">
-            <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
+            <p className="font-[Space_Grotesk] px-4 text-sm text-gray-400">Change the data displayed with the buttons below:</p>
             <div className="space-y-8">
                 <div className="flex justify-center gap-4">
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(0)} defaultChecked />

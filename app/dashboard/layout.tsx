@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Solar Dashboard
             </h1>
             <div className="flex justify-center">
-                <ol className="p-6 space-y-2 font-[Space_Grotesk] font-medium tracking-wide">
+                <ol className="p-6 space-y-2 font-[Space_Grotesk] font-medium tracking-wide text-gray-400">
                     <li>Address: <span className="font-light">{inputs.address}</span></li>
                     <li>Latitude: <span className="font-light">{inputs.lat}</span></li>
                     <li>Longitude: <span className="font-light">{inputs.lng}</span></li>
