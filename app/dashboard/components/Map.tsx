@@ -22,27 +22,27 @@ export default function Map({ data }: { data: any[] }) {
     formattedData.forEach(data => {
         const value = 100 * ((data[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
         const id = gradientProps.findIndex(color => value < color.offset);
-        // console.log(value)
+
         const { offset: d1, stopColor: r1 } = gradientProps[id - 1];
         const { offset: d2, stopColor: r2 } = gradientProps[id];
-        // console.log(`domain=${[d1, d2]}`);
-        // console.log(`range=${[r1, r2]}`);
-        // console.log(`value = ${value}`);
+
         const colorScale = d3.scaleLinear([d1, d2], [r1, r2]);
         dataColors.push(colorScale(value));
     });
 
     return (
-        <div className="space-y-5 text-center mx-auto">
+        <div className="space-y-8 text-center">
             <MapMenu
                 dataId={dataId}
                 setDataId={setDataId} />
-            <GoogleMap dataColors={dataColors} />
-            <HeatMap
-                data={formattedData}
-                dataId={dataId}
-                dataRanges={dataRanges}
-                gradientProps={gradientProps} />
+            <div>
+                <GoogleMap dataColors={dataColors} />
+                <HeatMap
+                    data={formattedData}
+                    dataId={dataId}
+                    dataRanges={dataRanges}
+                    gradientProps={gradientProps} />
+            </div>
         </div>
     )
 }
@@ -55,18 +55,15 @@ function MapMenu({ dataId, setDataId }:
     return (
         <div className="space-y-5">
             <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
-            <div className="space-y-2">
+            <div className="space-y-8">
                 <div className="flex justify-center gap-4">
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(0)} defaultChecked />
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(1)} />
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(2)} />
                 </div>
-                <h1 className='text-3xl font-[Darker_Grotesque] tracking-wider text-[#F0662A] '>
+                <h1 className='text-4xl font-[Darker_Grotesque] tracking-wider text-[#F0662A] '>
                     {titles[dataId]}
                 </h1>
-                <p className='font-[Space_Grotesk] px-4 text-sm'>
-                    Change the unit of time with the dropdown below the map.
-                </p>
             </div>
         </div>
     )

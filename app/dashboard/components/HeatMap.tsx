@@ -27,6 +27,9 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
         .domain(dataRanges[dataId])
         .range([10, boundedWidth]);
 
+    const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];
+
+
     return (
         <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] h-[140px] mx-auto">
             <svg width={dms.width} height={dms.height} >
@@ -47,8 +50,8 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
                         cx={xScale(d[dataId])}
                         cy={25 + 50 / data.length * i}
                         r="10"
-                        stroke="white"
-                        strokeWidth={3}
+                        stroke={colors[i]}
+                        strokeWidth={4}
                         fill="none"
                         className="cursor-pointer"
                     />)}

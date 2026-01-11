@@ -23,14 +23,14 @@ export default function ChartMenu({ dataId, setDataId, timeId, setTimeId }:
                 onClick={() => setTimeId([1, i])}>{month}</li>))
     ];
     return (
-        <div className="space-y-3">
+        <div className="space-y-5">
             <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
             <div className="flex justify-center gap-4">
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(0)} defaultChecked />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(1)} />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(2)} />
             </div>
-            <h1 className="text-3xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">
+            <h1 className="text-4xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">
                 {chartTitles[dataId]}
             </h1>
             <div className="space-y-2 mb-4">

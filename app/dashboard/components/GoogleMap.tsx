@@ -27,15 +27,17 @@ export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
 function PolygonPanels({ dataColors }: { dataColors: string[] }) {
     const map = useMap();
     const polygons = useRef<google.maps.Polygon[]>([]);
+    const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];
 
     useEffect(() => {
         if (!map) return;
         inputs.solarArrays.map((polygon, i) => {
             const poly = new google.maps.Polygon({
                 paths: polygon.shape,
-                strokeColor: "#1E1E1E",
+                strokeColor: colors[i],
+                strokeWeight: 4,
                 fillColor: dataColors[i],
-                fillOpacity: 0.25,
+                fillOpacity: 1,
             });
             polygons.current.push(poly);
             poly.setMap(map);

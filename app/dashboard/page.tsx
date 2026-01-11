@@ -24,6 +24,7 @@ export default async function Dashboard() {
         <div className="space-y-8">
             <Map data={data} />
             <Chart data={data} />
+            <br></br>
         </div>
     )
 }
