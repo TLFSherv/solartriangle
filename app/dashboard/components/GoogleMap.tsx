@@ -2,9 +2,10 @@
 import { Map, APIProvider } from '@vis.gl/react-google-maps';
 import { useMap } from '@vis.gl/react-google-maps';
 import { inputs } from "../test-data/data";
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-export default function GoogleMap() {
+export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
+
     return (
         <div className='mx-4'>
             <APIProvider
@@ -17,25 +18,34 @@ export default function GoogleMap() {
                     mapId={'f0d837b3785689636fe8a7cc'}
                 >
                 </Map>
-                <PolygonPanels />
+                <PolygonPanels dataColors={dataColors} />
             </APIProvider>
         </div>
     )
 }
 
-function PolygonPanels() {
+function PolygonPanels({ dataColors }: { dataColors: string[] }) {
     const map = useMap();
+    const polygons = useRef<google.maps.Polygon[]>([]);
+
     useEffect(() => {
-        inputs.solarArrays.map(polygon => {
+        if (!map) return;
+        inputs.solarArrays.map((polygon, i) => {
             const poly = new google.maps.Polygon({
                 paths: polygon.shape,
                 strokeColor: "#1E1E1E",
-                fillColor: "#444444",
+                fillColor: dataColors[i],
                 fillOpacity: 0.25,
             });
+            polygons.current.push(poly);
             poly.setMap(map);
-        })
-    }, [])
+        });
+
+        return () => {
+            polygons.current.forEach(poly => poly.setMap(null));
+            polygons.current = [];
+        }
+    }, [map, dataColors.join('-')]);
 
     return (<br />)
 }

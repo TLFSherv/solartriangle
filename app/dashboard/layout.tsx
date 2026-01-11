@@ -1,7 +1,4 @@
-"use client"
-import React from "react"
-
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     // const dataStr = localStorage.getItem("calculatorData");
     // const data = JSON.parse(dataStr as string);
     return (
@@ -19,4 +16,3 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     )
 }
 
-export default DashboardLayout

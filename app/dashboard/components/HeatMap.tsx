@@ -4,8 +4,18 @@ import * as d3 from "d3";
 import Axis from "./Axis"
 import useChartDimensions from "../hooks/useChartDimensions"
 
-export default function HeatMap({ data, dataId, dataRanges }:
-    { data: number[][], dataId: number, dataRanges: number[][] }) {
+type ColorGradient = {
+    offset: number;
+    stopColor: string;
+}[]
+
+export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
+    {
+        data: number[][],
+        dataId: number,
+        dataRanges: number[][],
+        gradientProps: ColorGradient
+    }) {
     const [ref, dms] = useChartDimensions({ width: 0, height: 0 });
 
     const position = { x: 0, y: 0 } // origin position
@@ -16,22 +26,14 @@ export default function HeatMap({ data, dataId, dataRanges }:
     const xScale = d3.scaleLinear()
         .domain(dataRanges[dataId])
         .range([10, boundedWidth]);
-    const colorProps = [
-        { offset: 0, stopColor: "#02020C" },
-        { offset: 16, stopColor: "#41006A" },
-        { offset: 32, stopColor: "#911A6B" },
-        { offset: 48, stopColor: "#E7434C" },
-        { offset: 54, stopColor: "#E4404E" },
-        { offset: 70, stopColor: "#F05C4E" },
-        { offset: 86, stopColor: "#FCC37E" },
-        { offset: 100, stopColor: "#FBFFB2" },
-    ];
+
     return (
         <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] h-[140px] mx-auto">
             <svg width={dms.width} height={dms.height} >
                 <defs>
                     <linearGradient id="Gradient1">
-                        {colorProps.map(color => <stop
+                        {gradientProps.map(color => <stop
+                            key={color.offset}
                             offset={`${color.offset}%`}
                             stopColor={color.stopColor}
                         />
