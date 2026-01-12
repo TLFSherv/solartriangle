@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { useState } from "react";
 import * as d3 from "d3";
 import Axis from "./Axis"
 import useChartDimensions from "../hooks/useChartDimensions"
@@ -14,6 +14,7 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
         dataRanges: number[][],
         gradientProps: ColorGradient
     }) {
+    const [selectedPoint, setSelectedPoint] = useState(0)
     const [ref, dms] = useChartDimensions({ width: 0, height: 0 });
 
     const position = { x: 0, y: 0 } // origin position
@@ -39,16 +40,26 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
                 </defs>
                 <g transform={`translate(${position.x},${position.y})`}>
                     <rect x="10" y="10" width={boundedWidth - 10} height={80} fill={"url(#Gradient1)"} />
-                    {data.map((d, i) => <circle
-                        key={i}
-                        cx={xScale(d[dataId])}
-                        cy={25 + 50 / data.length * i}
-                        r="10"
-                        stroke={colors[i]}
-                        strokeWidth={4}
-                        fill="none"
-                        className="cursor-pointer"
-                    />)}
+                    {data.map((d, i) => <g key={i}>
+                        <circle
+                            cx={xScale(d[dataId])}
+                            cy={25 + 50 / data.length * i}
+                            r="10"
+                            stroke={colors[i]}
+                            strokeWidth={4}
+                            fill="none"
+                            className="cursor-pointer"
+                            onClick={() => setSelectedPoint(i)}
+                        />
+                        {(selectedPoint === i) && <text
+                            fill={colors[i]}
+                            x={xScale(d[dataId]) + 16}
+                            y={25 + 50 / data.length * i}
+                            className="text-xs">
+                            {d[dataId].toFixed(2)}
+                        </text>}
+                    </g>
+                    )}
                     <g transform={`translate(0,${90})`}>
                         <Axis
                             type="x"
