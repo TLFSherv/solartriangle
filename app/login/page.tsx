@@ -1,5 +1,8 @@
 import Button from "@/app/components/Button"
+import { user1 } from "@/server/auth"
+
 export default function Login() {
+    console.log(user1)
     return (
         <div className="mt-16 mx-8 space-y-10">
             <h1 className="font-[Inter] text-[#F0662A] text-5xl sm:text-6xl text-center tracking-wide">

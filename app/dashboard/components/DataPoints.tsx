@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as d3 from "d3";
+import { colors } from '../lib/dataTools'
 
 type DataPoints =
     {
@@ -17,7 +18,7 @@ type Dataset = {
 export default function DataPoints(props: DataPoints) {
     const [selectedPoint, setSelectedPoint] = useState('');
     const { dataset, id, settings, domain, range } = props;
-    const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];
+
     let yCoord = 0, points = "";
     const xScale = d3.scaleLinear()
         .domain(domain.x)

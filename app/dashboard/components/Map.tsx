@@ -2,21 +2,26 @@
 import React, { useState } from "react";
 import GoogleMap from "./GoogleMap";
 import HeatMap from "./HeatMap";
-import formatHeatMapData from "../lib/formatMapData";
+import { formatDataMap, getDataColors, gradientProps } from "../lib/dataTools";
 
 export default function Map({ data }: { data: any[] }) {
     const [dataId, setDataId] = useState(0);
-    const [formattedData, dataRanges] = formatHeatMapData(data);
+    const [formattedData, dataRanges] = formatDataMap(data);
+    const dataColors = getDataColors(formattedData, dataId, dataRanges);
+
     return (
-        <div className="space-y-5 text-center mx-auto">
+        <div className="space-y-8 text-center">
             <MapMenu
                 dataId={dataId}
                 setDataId={setDataId} />
-            <GoogleMap />
-            <HeatMap
-                data={formattedData}
-                dataId={dataId}
-                dataRanges={dataRanges} />
+            <div>
+                <GoogleMap dataColors={dataColors} />
+                <HeatMap
+                    data={formattedData}
+                    dataId={dataId}
+                    dataRanges={dataRanges}
+                    gradientProps={gradientProps} />
+            </div>
         </div>
     )
 }
@@ -25,22 +30,19 @@ function MapMenu({ dataId, setDataId }:
     { dataId: number, setDataId: React.Dispatch<React.SetStateAction<number>> }) {
     const titles = ['AC Power Output',
         'Solar Radiation Annual',
-        'Solar Capacity Factor']
+        'Solar Capacity Factor'];
     return (
         <div className="space-y-5">
-            <p className="font-[Space_Grotesk] px-4 text-sm">Change the data displayed with the buttons below:</p>
-            <div className="space-y-2">
+            <p className="font-[Space_Grotesk] px-4 text-sm text-gray-400">Change the data displayed with the buttons below:</p>
+            <div className="space-y-8">
                 <div className="flex justify-center gap-4">
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(0)} defaultChecked />
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(1)} />
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(2)} />
                 </div>
-                <h1 className='text-3xl font-[Darker_Grotesque] tracking-wider text-[#F0662A] '>
+                <h1 className='text-4xl font-[Darker_Grotesque] tracking-wider text-[#6E6E6E] '>
                     {titles[dataId]}
                 </h1>
-                <p className='font-[Space_Grotesk] px-4 text-sm'>
-                    Change the unit of time with the dropdown below the map.
-                </p>
             </div>
         </div>
     )

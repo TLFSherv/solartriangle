@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } from "./solarTool";
 import { Dataset } from "../types/types";
+import * as d3 from "d3";
 
-export default function formatData(inputData: any[], dataId: number, timeId: number[]): Dataset[] {
+export function formatDataChart(inputData: any[], dataId: number, timeId: number[]): Dataset[] {
     const selectedOnce = timeId.length === 1;
     const check1 = (timeId[0] !== 0 || selectedOnce); // conditions to use kWh for Power and Irradiance data
     const check2 = (dataId === 2 && timeId[0] === 1 && selectedOnce); // conditons for using kWh for Losses data
@@ -118,3 +119,76 @@ export default function formatData(inputData: any[], dataId: number, timeId: num
 
     return result;
 }
+
+export function formatDataMap(data: any[]) {
+    // get the number of days in each month of the year
+    const daysPerMonth = new Array(12).fill(0).map((_, index) => new Date(2025, index + 1, 0).getDate())
+    // get the ranges for ac_annual and solrad_annual
+    let ac_range: number[] = [], solrad_range: number[] = [];
+    let minMonth = 0, maxMonth = 0;
+
+    const inputData = data.map((d, i) => {
+        ac_range.push(
+            Math.min(...d.pvwatts.outputs.ac_monthly),
+            Math.max(...d.pvwatts.outputs.ac_monthly)
+        );
+
+        minMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i]);
+        maxMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i + 1]);
+
+        solrad_range.push(
+            Math.min(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[minMonth],
+            Math.max(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[maxMonth]
+        );
+
+        return [d.pvwatts.outputs.ac_annual / 12,
+        d.pvwatts.outputs.solrad_annual,
+        d.pvwatts.outputs.capacity_factor];
+    });
+
+    const dataRanges = [
+        [Math.min(...ac_range), Math.max(...ac_range)],
+        [Math.min(...solrad_range), Math.max(...solrad_range)],
+        [10, 25] // capacity factors range from 10% to 25%
+    ];
+
+    const cleanRanges: [number, number][] = dataRanges.map(range => {
+        let multipleOfTen = Math.pow(10, Math.trunc(Math.log10(range[0])));
+        const cleanStart = Math.trunc(range[0] / multipleOfTen) * multipleOfTen;
+
+        multipleOfTen = Math.pow(10, Math.trunc(Math.log10(range[1])));
+        const cleanEnd = Math.trunc(range[1] / multipleOfTen) * multipleOfTen;
+
+        return [cleanStart, cleanEnd];
+    });
+
+    return [inputData, cleanRanges];
+}
+
+export function getDataColors(data: any[][], dataId: number, dataRanges: number[][]) {
+    const dataColors: string[] = [];
+    data.forEach(d => {
+        const value = 100 * ((d[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
+        const id = gradientProps.findIndex(color => value < color.offset);
+
+        const { offset: d1, stopColor: r1 } = gradientProps[id - 1];
+        const { offset: d2, stopColor: r2 } = gradientProps[id];
+
+        const colorScale = d3.scaleLinear([d1, d2], [r1, r2]);
+        dataColors.push(colorScale(value));
+    });
+    return dataColors;
+}
+
+export const gradientProps = [
+    { offset: 0, stopColor: "#02020C" },
+    { offset: 16, stopColor: "#41006A" },
+    { offset: 32, stopColor: "#911A6B" },
+    { offset: 48, stopColor: "#E7434C" },
+    { offset: 54, stopColor: "#E4404E" },
+    { offset: 70, stopColor: "#F05C4E" },
+    { offset: 86, stopColor: "#FCC37E" },
+    { offset: 100, stopColor: "#FBFFB2" },
+];
+
+export const colors = ['#2A5751', '#397ADB', '#4F6E9C', '#33312D', '#233331'];

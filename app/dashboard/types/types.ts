@@ -4,3 +4,8 @@ export type Dataset = {
     type: 'months' | 'hrs' | 'days';
     name: string;
 }
+
+export type ColorGradient = {
+    offset: number;
+    stopColor: string;
+}[]

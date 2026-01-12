@@ -1,22 +1,22 @@
-"use client"
-import React from "react"
+import { inputs } from "./test-data/data"
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     // const dataStr = localStorage.getItem("calculatorData");
     // const data = JSON.parse(dataStr as string);
     return (
-        <div>
-            <h1 className="text-center pt-14 font-[Space_Grotesk] text-4xl font-light text-[#DD6B19] tracking-wide">
+        <div className="space-y-8">
+            <h1 className="text-center pt-10 font-[Space_Grotesk] text-4xl font-light text-[#6E6E6E] tracking-wide">
                 Solar Dashboard
             </h1>
-            <ol className="ml-[10%] p-6 space-y-1 font-[Space_Grotesk] font-light text-sm">
-                {/* <li>Address: {data.address}</li>
-                <li>Latitude: {data.lat}</li>
-                <li>Longitude: {data.lng}</li> */}
-            </ol>
+            <div className="flex justify-center">
+                <ol className="space-y-2 font-[Space_Grotesk] font-medium tracking-wide text-gray-400">
+                    <li>Address: <span className="font-light">{inputs.address}</span></li>
+                    <li>Latitude: <span className="font-light">{inputs.lat}</span></li>
+                    <li>Longitude: <span className="font-light">{inputs.lng}</span></li>
+                </ol>
+            </div>
             {children}
         </div>
     )
 }
 
-export default DashboardLayout

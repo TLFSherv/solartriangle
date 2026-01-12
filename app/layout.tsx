@@ -41,7 +41,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="flex justify-center font-[Inter] font-light">
-          <h4 className="pb-2 text-sm">Copyright @DayDream</h4>
+          <h4 className="pb-2 text-xs">Copyright @DayDream</h4>
         </footer>
       </body>
     </html>
