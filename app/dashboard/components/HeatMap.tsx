@@ -52,7 +52,7 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
                             onClick={() => setSelectedPoint(i)}
                         />
                         {(selectedPoint === i) && <text
-                            fill={colors[i]}
+                            fill="white"
                             x={xScale(d[dataId]) + 16}
                             y={25 + 50 / data.length * i}
                             className="text-xs">
