@@ -5,7 +5,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // const data = JSON.parse(dataStr as string);
     return (
         <div className="space-y-8">
-            <h1 className="text-center pt-10 font-[Space_Grotesk] text-4xl font-light text-[#DD6B19] tracking-wide">
+            <h1 className="text-center pt-10 font-[Space_Grotesk] text-4xl font-light text-[#6E6E6E] tracking-wide">
                 Solar Dashboard
             </h1>
             <div className="flex justify-center">

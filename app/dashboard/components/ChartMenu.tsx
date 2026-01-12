@@ -32,7 +32,7 @@ export default function ChartMenu({ dataId, setDataId, timeId, setTimeId }:
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(1)} />
                 <input className="accent-black" type='radio' name="data" onClick={() => setDataId(2)} />
             </div>
-            <h1 className="text-4xl font-[Darker_Grotesque] tracking-wider text-[#F0662A]">
+            <h1 className="text-4xl font-[Darker_Grotesque] tracking-wider text-[#6E6E6E]">
                 {chartTitles[dataId]}
             </h1>
             <div className="space-y-2 mb-4">

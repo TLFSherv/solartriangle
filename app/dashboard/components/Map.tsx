@@ -40,7 +40,7 @@ function MapMenu({ dataId, setDataId }:
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(1)} />
                     <input className="accent-black" type='radio' name="map_data" onClick={() => setDataId(2)} />
                 </div>
-                <h1 className='text-4xl font-[Darker_Grotesque] tracking-wider text-[#F0662A] '>
+                <h1 className='text-4xl font-[Darker_Grotesque] tracking-wider text-[#6E6E6E] '>
                     {titles[dataId]}
                 </h1>
             </div>
