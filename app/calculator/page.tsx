@@ -37,7 +37,7 @@ export default function Calculator() {
 
         localStorage.setItem("calculatorData", JSON.stringify(formData));
         // navigate to dashboard
-        // router.push('/dashboard');
+        router.push('/dashboard');
     }
 
     return (

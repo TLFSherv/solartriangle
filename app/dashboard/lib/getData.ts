@@ -22,26 +22,26 @@ type SolarArray = {
 }
 // chache server function but revalidate data based on time
 export default async function getData() {
-    // const formDataStr = localStorage.getItem("calculatorData");
-    // const formData = JSON.parse(formDataStr as string);
-    const initParams = (): ParamObj[] => {
-        return inputs.solarArrays.map((solarArray: SolarArray) => {
-            return {
-                lat: inputs.lat,
-                lng: inputs.lng,
-                capacity: (solarArray.solarCapacity / 1000) * solarArray.numberOfPanels,
-                quantity: solarArray.numberOfPanels,
-                azimuth: solarArray.azimuth,
-                tilt: 30
-            }
-        })
-    }
+    const formDataStr = localStorage.getItem("calculatorData");
+    const formData = JSON.parse(formDataStr as string);
+    // const initParams = (): ParamObj[] => {
+    //     return inputs.solarArrays.map((solarArray: SolarArray) => {
+    //         return {
+    //             lat: inputs.lat,
+    //             lng: inputs.lng,
+    //             capacity: (solarArray.solarCapacity / 1000) * solarArray.numberOfPanels,
+    //             quantity: solarArray.numberOfPanels,
+    //             azimuth: solarArray.azimuth,
+    //             tilt: 30
+    //         }
+    //     })
+    // }
 
-    const params = initParams();
+    // const params = initParams();
     let result: any[] = []
-    for (const p of params) {
-        const pvwatts = await fetchPVWattsData(p);
-        const openmeteo = await fetchOpenMetoData(p);
+    for (const d of formData) {
+        const pvwatts = await fetchPVWattsData(d);
+        const openmeteo = await fetchOpenMetoData(d);
         result.push({ pvwatts, openmeteo })
     }
 
