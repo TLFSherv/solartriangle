@@ -1,24 +1,21 @@
-//'use server'
+'use server'
 import { z } from "zod"
 import { verifyPassword } from "@/app/lib/auth"
 import { getUserByUsername, createUser, createSession, deleteSession } from "@/app/lib/dal";
 import { redirect } from "next/navigation";
 
-const userSchema = z.object({
-    name: z.string().min(1, "name length must be greater than 1")
-})
-
-export const user1 = { name: 1 };
-// const userValidateResult = userSchema.safeParse(user1);
-// if (!userValidateResult.success) {
-//     const error = z.prettifyError(userValidateResult.error)
-//     console.log(error);
-// }
-
-
-const AuthSchema = z.object({
-    username: z.string().min(3, 'Username must be 3 or more characters'),
+const SignInSchema = z.object({
+    email: z.email("Invalid email format").min(1, 'Email is required'),
     password: z.string().min(6, "Password must be 6 or more characters")
+});
+
+const SignUpSchema = z.object({
+    email: z.email("Invalid email format").min(1, 'Email is required'),
+    password: z.string().min(6, "Password must be 6 or more characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password")
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Password do not match",
+    path: ['confirmPassword']
 });
 
 export type ActionResponse = {
@@ -36,7 +33,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             password: formData.get('password') as string
         }
 
-        const validationResult = AuthSchema.safeParse(data);
+        const validationResult = SignInSchema.safeParse(data);
         if (!validationResult.success)
             return {
                 success: false,
@@ -86,11 +83,12 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
     try {
         // Extract data from form
         const data = {
-            username: formData.get('username') as string,
-            password: formData.get('password') as string
+            username: formData.get('email') as string,
+            password: formData.get('password') as string,
+            confirmPassword: formData.get('confirmPassword') as string
         }
 
-        const validationResult = AuthSchema.safeParse(data);
+        const validationResult = SignUpSchema.safeParse(data);
         if (!validationResult.success)
             return {
                 success: false,
@@ -100,7 +98,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
 
         // Check if user already exists
         const existingUser = await getUserByUsername(data.username);
-        if (!existingUser) {
+        if (existingUser) {
             return {
                 success: false,
                 message: 'Inavlid username or password',
@@ -145,6 +143,6 @@ export async function signOut(): Promise<void> {
         console.error('Sign out error', e);
         throw new Error('Failed to sign out');
     } finally {
-        // redirect('/signin')
+        redirect('/signin')
     }
 }

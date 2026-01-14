@@ -31,7 +31,7 @@ export default function RootLayout({
             height={65}
           />
           <Link
-            href={"/login"}
+            href={"/signin"}
             className="font-[Darker_Grotesque] text-lg">
             Account
           </Link>
