@@ -1,4 +1,4 @@
-import useFetchData from "../lib/getData";
+import useFetchData from "../../../actions/fetchData";
 import useFormatData from "./useFormatData";
 
 export default function useData() {

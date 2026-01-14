@@ -1,7 +1,11 @@
 import { inputs } from "../test-data/data";
 import { colors } from "../lib/dataTools"
+import { FormInputs } from "@/app/types/types"
 
 export default function DataTable() {
+    const inputDataStr = localStorage.getItem("calculatorData");
+    const inputs: FormInputs = JSON.parse(inputDataStr as string);
+
     return (
         <div className="flex flex-row justify-center">
             <table className="w-full sm:w-4/5 sm:text-lg text-left min-w-max text-gray-400 mx-4">

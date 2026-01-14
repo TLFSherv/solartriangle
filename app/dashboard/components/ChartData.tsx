@@ -2,7 +2,7 @@ import Axis from "./Axis"
 import TimeAxis from "./TimeAxis";
 import DataPoints from "./DataPoints";
 import useChartDimensions from "../hooks/useChartDimensions"
-import { Dataset } from "../types/types";
+import { Dataset } from "../../types/types";
 
 export default function ChartData({ dataset }: { dataset: Dataset[] }) {
     const chartSettings = { width: 0, height: 0 }

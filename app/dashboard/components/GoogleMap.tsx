@@ -4,8 +4,11 @@ import { useMap } from '@vis.gl/react-google-maps';
 import { inputs } from "../test-data/data";
 import { useEffect, useRef } from 'react';
 import { colors } from '../lib/dataTools'
+import { FormInputs } from '@/app/types/types';
 
 export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
+    const inputDataStr = localStorage.getItem("calculatorData");
+    const inputs: FormInputs = JSON.parse(inputDataStr as string);
 
     return (
         <div className='mx-4'>
@@ -15,7 +18,10 @@ export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
                 <Map
                     style={{ width: '100%', height: '400px' }}
                     defaultZoom={20}
-                    defaultCenter={{ lat: parseFloat(inputs.lat), lng: parseFloat(inputs.lng) }}
+                    defaultCenter={{
+                        lat: inputs?.location?.lat as number,
+                        lng: inputs?.location?.lng as number
+                    }}
                     mapId={'f0d837b3785689636fe8a7cc'}
                 >
                 </Map>

@@ -1,5 +1,5 @@
 import React from "react";
-import { FormInputs, Suggestion } from "../types/types";
+import { FormInputs, Suggestion } from "../../../types/types";
 
 export default function SuggestionsDropdown(props:
     {

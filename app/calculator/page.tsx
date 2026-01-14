@@ -5,7 +5,7 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { FormInputs } from "./types/types";
+import { FormInputs } from "@/app/types/types"
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -37,7 +37,7 @@ export default function Calculator() {
 
         localStorage.setItem("calculatorData", JSON.stringify(formData));
         // navigate to dashboard
-        // router.push('/dashboard');
+        router.push('/dashboard');
     }
 
     return (

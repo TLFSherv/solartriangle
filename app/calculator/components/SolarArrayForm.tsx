@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { getPolygonArea, getPolygonAzimuth } from "../lib/geometryTool";
-import { FormInputs } from "../types/types";
+import { FormInputs } from "../../../types/types";
 
 
 export default function SolarArrayForm(props: {

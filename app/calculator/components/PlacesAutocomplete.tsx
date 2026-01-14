@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
-import { FormInputs, Suggestion } from "../types/types";
+import { FormInputs, Suggestion } from "../../../types/types";
 
 const PlacesAutocomplete = (props:
     {

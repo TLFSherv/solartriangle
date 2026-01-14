@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } from "./solarTool";
-import { Dataset } from "../types/types";
+import { Dataset } from "../../types/types";
 import * as d3 from "d3";
 
 export function formatDataChart(inputData: any[], dataId: number, timeId: number[]): Dataset[] {

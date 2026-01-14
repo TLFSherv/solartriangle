@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import Axis from "./Axis"
 import useChartDimensions from "../hooks/useChartDimensions"
 import { colors } from '../lib/dataTools'
-import { ColorGradient } from '../types/types'
+import { ColorGradient } from '../../types/types'
 
 
 export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
