@@ -6,6 +6,7 @@ import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
 import { FormInputs } from "./types/types";
+import { cacheData } from "@/actions/data";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -24,7 +25,7 @@ export default function Calculator() {
         setInputs(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!inputs.polygons) return
 
@@ -34,10 +35,15 @@ export default function Calculator() {
             lng: String(inputs.location?.lng),
             solarArrays: inputs.solarArrays
         };
+        const cacheResult = await cacheData("calculatorData", JSON.stringify(formData))
+        if (cacheResult.success) {
+            // navigate to dashboard
+            router.push('/dashboard');
+        } else {
+            // let user know there was an error
+            console.error(cacheResult.error);
+        }
 
-        localStorage.setItem("calculatorData", JSON.stringify(formData));
-        // navigate to dashboard
-        router.push('/dashboard');
     }
 
     return (

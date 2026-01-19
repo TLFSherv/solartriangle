@@ -1,3 +1,3 @@
-export async function verifyPassword(password: string, password1: string) {
-
+export async function verifyPassword(validPassword: string, inputPassword: string) {
+    return true
 }

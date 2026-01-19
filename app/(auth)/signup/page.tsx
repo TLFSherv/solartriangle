@@ -48,7 +48,7 @@ export default function Sigup() {
                 id="signupForm"
                 className="flex flex-col gap-8 justify-center items-center font-[Inter] font-light text-md">
                 {state?.message && !state.success && (
-                    <p className="text-sm text-red">{state.message}</p>
+                    <p className="text-sm text-red-500">{state.message}</p>
                 )}
                 <div className="grid grid-cols-[1fr_2fr] grid-rows-2 gap-4">
                     <div className="my-auto text-sm sm:text-base">
@@ -66,7 +66,7 @@ export default function Sigup() {
                             required
                             disabled={isPending} />
                         {state?.errors?.email && (
-                            <p className="text-sm text-red">
+                            <p className="text-sm text-red-500">
                                 {state.errors.email[0]}
                             </p>
                         )}
@@ -87,7 +87,7 @@ export default function Sigup() {
                             required
                             disabled={isPending} />
                         {state?.errors?.password && (
-                            <p className="text-sm text-red">
+                            <p className="text-sm text-red-500">
                                 {state.errors.password[0]}
                             </p>
                         )}
@@ -109,7 +109,7 @@ export default function Sigup() {
                             disabled={isPending}
                         />
                         {state?.errors?.confirmPassword && (
-                            <p className="text-sm text-red">
+                            <p className="text-sm text-red-500">
                                 {state.errors.confirmPassword[0]}
                             </p>
                         )}

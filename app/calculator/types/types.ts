@@ -4,6 +4,7 @@ type FormInputs = {
     polygons: { id: number; polygon: google.maps.Polygon }[];
     solarArrays: SolarArray[];
 }
+
 type SolarArray = {
     id: number;
     solarCapacity: number;
@@ -20,4 +21,13 @@ type Suggestion = {
     };
 };
 
-export { type FormInputs, type Suggestion }
+type SolarAPIParams = {
+    lat: string;
+    lng: string;
+    capacity: number;
+    quantity: number;
+    azimuth: number;
+    tilt: number;
+}
+
+export { type FormInputs, type Suggestion, type SolarArray, type SolarAPIParams }
