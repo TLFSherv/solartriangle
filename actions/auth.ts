@@ -29,7 +29,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
     try {
         // Extract data from form
         const data = {
-            username: formData.get('username') as string,
+            email: formData.get('email') as string,
             password: formData.get('password') as string
         }
 
@@ -38,14 +38,14 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             return {
                 success: false,
                 message: 'Validation failed',
-                error: z.prettifyError(validationResult.error)
+                errors: z.flattenError(validationResult.error).fieldErrors
             }
 
-        const user = await getUserByUsername(data.username);
+        const user = await getUserByUsername(data.email);
         if (!user) {
             return {
                 success: false,
-                message: 'Invalid username or password',
+                message: 'Invalid email or password',
                 errors: {
                     username: ['Invalid email or password']
                 }
@@ -56,9 +56,9 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
         if (!isPasswordValid) {
             return {
                 success: false,
-                message: 'Invalid username or password',
+                message: 'Invalid email or password',
                 errors: {
-                    password: ['Invalid username or password']
+                    password: ['Invalid email or password']
                 }
             }
         }
@@ -68,7 +68,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
         return {
             success: true,
             message: 'Signed in successfully',
-            error: 'Signed in successfully'
+            error: ''
         };
     } catch (e) {
         console.error(e);
@@ -83,21 +83,22 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
     try {
         // Extract data from form
         const data = {
-            username: formData.get('email') as string,
+            email: formData.get('email') as string,
             password: formData.get('password') as string,
             confirmPassword: formData.get('confirmPassword') as string
         }
 
         const validationResult = SignUpSchema.safeParse(data);
+
         if (!validationResult.success)
             return {
                 success: false,
                 message: 'Validation failed',
-                error: z.prettifyError(validationResult.error)
+                errors: z.flattenError(validationResult.error).fieldErrors
             }
 
         // Check if user already exists
-        const existingUser = await getUserByUsername(data.username);
+        const existingUser = await getUserByUsername(data.email);
         if (existingUser) {
             return {
                 success: false,
@@ -109,7 +110,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
         }
 
         // Create new user
-        const user = await createUser(data.username, data.password)
+        const user = await createUser(data.email, data.password)
         if (!user) {
             return {
                 success: false,
