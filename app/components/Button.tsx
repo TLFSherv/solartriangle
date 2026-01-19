@@ -1,10 +1,12 @@
 
-export default function Button(props: { text: string, style?: string }) {
+export default function Button({ text, type = "button", form, style }:
+    { text: string, type?: "button" | "submit" | "reset" | undefined, form?: string, style?: string }) {
     return (
         <button
-            type="button"
-            className={`py-4 px-6 rounded-2xl cursor-pointer tracking-wider ${props?.style}`}>
-            {props.text}
+            type={type}
+            form={form}
+            className={`py-4 px-6 rounded-2xl cursor-pointer tracking-wider ${style}`}>
+            {text}
         </button>
     )
 }
