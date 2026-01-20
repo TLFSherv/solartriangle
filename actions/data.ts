@@ -1,7 +1,8 @@
 'use server'
 import { fetchWeatherApi } from "openmeteo";
-import { inputs } from "../app/dashboard/test-data/data";
 import redis from 'redis'
+import { redirect, RedirectType } from 'next/navigation'
+import { CalculatorData } from "@/app/types/types";
 
 type SolarAPIParams = {
     lat: string;
@@ -15,7 +16,7 @@ type SolarAPIParams = {
 const revalidate = 600
 
 // cache server function but revalidate data based on time
-export async function fetchData() {
+export async function fetchData(cacheData: CalculatorData) {
     const fetchPVWattsData = async (param: SolarAPIParams) => {
         const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
         const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
@@ -63,25 +64,32 @@ export async function fetchData() {
             throw err;
         }
     }
-    const cachedObj = await getCachedData("calculatorData");
-    if (!cachedObj.success) throw Error(cachedObj.error);
 
-    let result: any[] = []
-    for (const solarArray of cachedObj.data.solarArrays) {
-        const data = {
-            lat: cachedObj.data.lat,
-            lng: cachedObj.data.lng,
-            capacity: solarArray.solarCapacity,
-            quantity: solarArray.numberOfPanels,
-            azimuth: solarArray.azimuth,
-            tilt: 30
+    try {
+        let result: any[] = []
+        for (const solarArray of cacheData.solarArrays) {
+            const data = {
+                lat: cacheData.lat,
+                lng: cacheData.lng,
+                capacity: solarArray.solarCapacity,
+                quantity: solarArray.numberOfPanels,
+                azimuth: solarArray.azimuth,
+                tilt: 30
+            };
+            const pvwatts = await fetchPVWattsData(data);
+            const openmeteo = await fetchOpenMetoData(data);
+            result.push({ pvwatts, openmeteo })
+        }
+        return {
+            success: true,
+            data: result,
+            error: ''
         };
-        const pvwatts = await fetchPVWattsData(data);
-        const openmeteo = await fetchOpenMetoData(data);
-        result.push({ pvwatts, openmeteo })
-    }
 
-    return result;
+    } catch (e: any) {
+        // redirect to calculator page
+        redirect('/calculator', RedirectType.replace)
+    }
 }
 // fetch form data from redis
 export async function getCachedData(key: string) {
@@ -98,12 +106,8 @@ export async function getCachedData(key: string) {
             error: ''
         };
     } catch (e: any) {
-        console.error(e);
-        return {
-            success: false,
-            data: null,
-            error: e.message
-        };
+        // redirect to calculator page
+        redirect('/calculator', RedirectType.replace)
     }
 }
 // store form input data from calculator page in redis

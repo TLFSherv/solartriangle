@@ -32,4 +32,11 @@ type ColorGradient = {
     stopColor: string;
 }[]
 
-export { type FormInputs, type Suggestion, type Dataset, type ColorGradient }
+type CalculatorData = {
+    address: string;
+    lat: string;
+    lng: string;
+    solarArrays: SolarArray[]
+}
+
+export { type FormInputs, type Suggestion, type Dataset, type ColorGradient, type SolarArray, type CalculatorData }

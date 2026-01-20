@@ -1,10 +1,12 @@
-import { inputs } from "../test-data/data";
+'use client'
+
 import { colors } from "../lib/dataTools"
-import { FormInputs } from "@/app/types/types"
+import { useContext } from 'react';
+import { CalculatorContext } from '../context/CalculatorProvider';
+import { type CalculatorData } from "@/app/types/types";
 
 export default function DataTable() {
-    const inputDataStr = localStorage.getItem("calculatorData");
-    const inputs: FormInputs = JSON.parse(inputDataStr as string);
+    const calculatorData: CalculatorData = useContext(CalculatorContext);
 
     return (
         <div className="flex flex-row justify-center">
@@ -20,7 +22,7 @@ export default function DataTable() {
                     </tr>
                 </thead>
                 <tbody className="font-light">
-                    {inputs.solarArrays.map((d, i) => {
+                    {calculatorData.solarArrays.map((d, i) => {
                         let color = `bg-[${colors[i]}]`
                         return (<tr key={i}>
                             <td className="border-b border-blue-gray-50">Array {d.id}</td>

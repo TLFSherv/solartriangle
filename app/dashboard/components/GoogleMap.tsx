@@ -1,14 +1,14 @@
 'use client'
 import { Map, APIProvider } from '@vis.gl/react-google-maps';
 import { useMap } from '@vis.gl/react-google-maps';
-import { useEffect, useRef, useContext, use } from 'react';
+import { useEffect, useRef, useContext } from 'react';
 import { colors } from '../lib/dataTools'
-import { type SolarArray } from '@/app/calculator/types/types';
-import { MapContext } from '../context/MapProvider';
+import { type SolarArray, type CalculatorData } from '@/app/types/types'
+import { CalculatorContext } from '../context/CalculatorProvider';
+
 
 export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
-    const contextPromise = useContext(MapContext);
-    const mapContext = use(contextPromise as Promise<any>);
+    const calculatorData: CalculatorData = useContext(CalculatorContext);
     return (
         <div className='mx-4'>
             <APIProvider
@@ -18,14 +18,14 @@ export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
                     style={{ width: '100%', height: '400px' }}
                     defaultZoom={20}
                     defaultCenter={{
-                        lat: parseFloat(mapContext.data.lat),
-                        lng: parseFloat(mapContext.data.lng)
+                        lat: parseFloat(calculatorData.lat),
+                        lng: parseFloat(calculatorData.lng)
                     }}
                     mapId={'f0d837b3785689636fe8a7cc'}
                 >
                 </Map>
                 <PolygonPanels
-                    solarArrays={mapContext.data.solarArrays}
+                    solarArrays={calculatorData.solarArrays}
                     dataColors={dataColors} />
             </APIProvider>
         </div>
