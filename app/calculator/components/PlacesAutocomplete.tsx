@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
-import { useMap } from '@vis.gl/react-google-maps';
+import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
 import { FormInputs, Suggestion } from "@/app/types/types";
 
@@ -83,6 +83,7 @@ const PlacesAutocomplete = (props:
     }, [debouncedString]);
     return (
         <>
+            <AdvancedMarker key={address} position={location} />
             <div
                 ref={searchContainer}
                 className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
