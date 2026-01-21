@@ -1,7 +1,7 @@
 "use client"
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { getPolygonArea, getPolygonAzimuth } from "../lib/geometryTool";
-import { FormInputs } from "../../../types/types";
+import { FormInputs } from "@/app/types/types"
 
 
 export default function SolarArrayForm(props: {
@@ -106,8 +106,8 @@ export default function SolarArrayForm(props: {
         <div className="flex justify-evenly border-2 border-[#787572] rounded-xl p-6 gap-8 max-w-3xl mx-auto">
             <div className="flex-1 my-auto">
                 <ol className="text-center font-[Space_Grotesk] space-y-2 py-3">
-                    {solarArrays.map(({ id }) => {
-                        return <li key={id}
+                    {solarArrays.map(({ id }, i) => {
+                        return <li key={i}
                             className={`cursor-pointer ${activeId === id ? "text-[#DD6B19]" : ""}`}
                             onClick={() => setActiveId(id)}>
                             Solar array {id}
@@ -127,7 +127,8 @@ export default function SolarArrayForm(props: {
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
                         autoComplete="false"
-                        disabled={isEmpty} />
+                        disabled={isEmpty}
+                        required />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="numberOfPanels">
@@ -140,7 +141,8 @@ export default function SolarArrayForm(props: {
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
                         autoComplete="false"
-                        disabled={isEmpty} />
+                        disabled={isEmpty}
+                        required />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="azimuth">
@@ -153,7 +155,8 @@ export default function SolarArrayForm(props: {
                         className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                         type="number"
                         autoComplete="false"
-                        disabled={isEmpty} />
+                        disabled={isEmpty}
+                        required />
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="area">

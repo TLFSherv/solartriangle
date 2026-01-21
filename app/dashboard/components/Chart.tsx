@@ -9,7 +9,7 @@ export default function Chart({ data }:
     const [dataId, setDataId] = useState<number>(0);
     const [timeId, setTimeId] = useState<number[]>([0]);
     const dataset = formatDataChart(data, dataId, timeId);
-
+    console.log(dataset);
     return (
         <div className="w-full text-center">
             <ChartMenu

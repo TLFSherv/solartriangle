@@ -4,8 +4,7 @@ import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints } from '../lib/geometryTool'
-import { FormInputs } from "../../../types/types";
-
+import { FormInputs } from "@/app/types/types";
 
 export default function DrawingTool(props: {
     inputs: FormInputs,

@@ -2,7 +2,8 @@
 import { fetchWeatherApi } from "openmeteo";
 import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
-import { CalculatorData } from "@/app/types/types";
+import { CalculatorData, FormInputs } from "@/app/types/types";
+import z from 'zod';
 
 type SolarAPIParams = {
     lat: string;
@@ -12,6 +13,21 @@ type SolarAPIParams = {
     azimuth: number;
     tilt: number;
 }
+
+const calculatorSchema = z.object({
+    address: z.string().nonempty("no address"),
+    lat: z.string().nonempty("no latitude"),
+    lng: z.string().nonempty("no longitude"),
+    solarArrays: z.array(z.object({
+        id: z.number(),
+        solarCapacity: z.number().min(1),
+        numberOfPanels: z.number().min(1),
+        area: z.number().min(1).max(1000),
+        azimuth: z.number().min(1),
+        shape: z.array(z.object({ lat: z.number(), lng: z.number() }))
+    })).min(1)
+})
+
 
 const revalidate = 600
 
@@ -71,7 +87,7 @@ export async function fetchData(cacheData: CalculatorData) {
             const data = {
                 lat: cacheData.lat,
                 lng: cacheData.lng,
-                capacity: solarArray.solarCapacity,
+                capacity: solarArray.solarCapacity / 1000 * solarArray.numberOfPanels,
                 quantity: solarArray.numberOfPanels,
                 azimuth: solarArray.azimuth,
                 tilt: 30
@@ -110,25 +126,41 @@ export async function getCachedData(key: string) {
         redirect('/calculator', RedirectType.replace)
     }
 }
-// store form input data from calculator page in redis
-export async function cacheData(key: string, data: string) {
+
+export async function cacheExists(key: string) {
     try {
+        const redisClient = redis.createClient()
+        redisClient.connect();
+        const result = await redisClient.exists(key);
+        return result;
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+
+// store form input data from calculator page in redis
+export async function cacheData(key: string, data: CalculatorData) {
+    try {
+        const validationResult = z.safeParse(calculatorSchema, data);
+        if (!validationResult.success)
+            return {
+                success: false,
+                details: z.flattenError(validationResult.error)
+            }
         const redisClient = redis.createClient();
         redisClient.connect();
-        const result = await redisClient.setEx(key, 1800, data);
+        const result = await redisClient.setEx(key, 1800, JSON.stringify(data));
         if (result !== 'OK')
             throw Error(`Could not set value for key the ${key}, function returned: ${result}`);
 
         return {
             success: true,
-            error: ''
+            details: null
         };
     } catch (e: any) {
-        console.error(e);
-        return {
-            success: false,
-            error: e.message
-        };
+        return { success: false, details: e.message };
     }
 }
 

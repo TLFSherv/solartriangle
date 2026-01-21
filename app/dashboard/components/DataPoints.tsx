@@ -18,7 +18,7 @@ type Dataset = {
 export default function DataPoints(props: DataPoints) {
     const [selectedPoint, setSelectedPoint] = useState('');
     const { dataset, id, settings, domain, range } = props;
-
+    console.log('hello')
     let yCoord = 0, points = "";
     const xScale = d3.scaleLinear()
         .domain(domain.x)
@@ -36,8 +36,8 @@ export default function DataPoints(props: DataPoints) {
                     <g key={i}>
                         <circle
                             cx={xScale(i)}
-                            cy={yCoord.toFixed(2)}
-                            r="4"
+                            cy={yCoord}
+                            r="3"
                             fill={colors[id]}
                             onClick={() => setSelectedPoint(pointId)}
                             className="cursor-pointer"
@@ -47,12 +47,12 @@ export default function DataPoints(props: DataPoints) {
                             className="text-xs"
                             x={xScale(i) - 20}
                             y={yCoord - 10}>
-                            {y.toFixed(2)}
+                            {y.toFixed(4)}
                         </text>}
                     </g>
                 )
             })}
-            <polyline points={points} fill="none" strokeWidth={2} stroke={colors[id]} />
+            <polyline points={points} fill="none" strokeWidth={1} stroke={colors[id]} />
         </g>
     )
 }

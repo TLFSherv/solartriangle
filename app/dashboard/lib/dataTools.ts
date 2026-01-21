@@ -170,7 +170,7 @@ export function getDataColors(data: any[][], dataId: number, dataRanges: number[
     data.forEach(d => {
         const value = 100 * ((d[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
         const id = gradientProps.findIndex(color => value < color.offset);
-
+        console.log(id - 1)
         const { offset: d1, stopColor: r1 } = gradientProps[id - 1];
         const { offset: d2, stopColor: r2 } = gradientProps[id];
 

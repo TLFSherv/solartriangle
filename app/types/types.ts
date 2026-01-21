@@ -40,3 +40,4 @@ type CalculatorData = {
 }
 
 export { type FormInputs, type Suggestion, type Dataset, type ColorGradient, type SolarArray, type CalculatorData }
+

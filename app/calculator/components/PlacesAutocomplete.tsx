@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
-import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
+import { useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
-import { FormInputs, Suggestion } from "../../../types/types";
+import { FormInputs, Suggestion } from "@/app/types/types";
 
 const PlacesAutocomplete = (props:
     {
@@ -16,7 +16,7 @@ const PlacesAutocomplete = (props:
     const { address, location } = props.inputs;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-
+    console.log(location)
     useEffect(() => {
         // debouce search string
         if (!address || address.trim().length === 0
@@ -83,7 +83,6 @@ const PlacesAutocomplete = (props:
     }, [debouncedString]);
     return (
         <>
-            <AdvancedMarker key={address} position={location} />
             <div
                 ref={searchContainer}
                 className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
