@@ -1,6 +1,6 @@
 type FormInputs = {
     address: string;
-    location: { lat: number; lng: number } | null;
+    location: google.maps.LatLng | null;
     polygons: { id: number; polygon: google.maps.Polygon }[];
     solarArrays: SolarArray[];
 }
@@ -39,5 +39,14 @@ type CalculatorData = {
     solarArrays: SolarArray[]
 }
 
-export { type FormInputs, type Suggestion, type Dataset, type ColorGradient, type SolarArray, type CalculatorData }
+type SolarAPIParams = {
+    lat: string;
+    lng: string;
+    capacity: number;
+    quantity: number;
+    azimuth: number;
+    tilt: number;
+}
+
+export { type FormInputs, type Suggestion, type Dataset, type ColorGradient, type SolarArray, type CalculatorData, type SolarAPIParams }
 

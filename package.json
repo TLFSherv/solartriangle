@@ -11,8 +11,11 @@
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.7.1",
     "d3": "^7.9.0",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
     "next": "^16.1.1",
     "openmeteo": "^1.2.2",
+    "pg": "^8.17.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",

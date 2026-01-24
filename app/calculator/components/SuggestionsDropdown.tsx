@@ -1,5 +1,5 @@
 import React from "react";
-import { FormInputs, Suggestion } from "../../../types/types";
+import { FormInputs, Suggestion } from "@/app/types/types";
 
 export default function SuggestionsDropdown(props:
     {
@@ -22,11 +22,11 @@ export default function SuggestionsDropdown(props:
         const data = await response.json();
         if (!data.location) return;
 
-        const newLoc = {
-            lat: data.location.latitude,
-            lng: data.location.longitude
-        };
-        setInputs({ ...inputs, ['address']: text, ['location']: newLoc });
+        setInputs({
+            ...inputs,
+            ['address']: text,
+            ['location']: new google.maps.LatLng(data.location.latitude, data.location.longitude)
+        });
     }
 
     return (

@@ -16,7 +16,7 @@ const PlacesAutocomplete = (props:
     const { address, location } = props.inputs;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-    console.log(location)
+
     useEffect(() => {
         // debouce search string
         if (!address || address.trim().length === 0
@@ -37,7 +37,7 @@ const PlacesAutocomplete = (props:
         }
     }, [location])
 
-    // hide suggestions when you click outside suggestions boc
+    // hide suggestions when you click outside suggestions box
     useEffect(() => {
         const outsideClickHandler = (e: MouseEvent) => {
             if (searchContainer.current &&

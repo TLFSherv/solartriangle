@@ -51,10 +51,11 @@ export default function SolarArrayForm(props: {
         return () => clearTimeout(timeoutId);
     }, [props.inputs, activeId]);
 
+    // create solar array objects for the polygons drawn on the map
     useEffect(() => {
         if (isEmpty) return;
 
-        const polygonIds = polygons.map((p) => p.id);
+        const polygonIds = polygons.map(p => p.id);
 
         // if no solar array is selected select one
         let isSelected = polygonIds.some((id) => id === activeId);

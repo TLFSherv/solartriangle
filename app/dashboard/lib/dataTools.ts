@@ -132,10 +132,12 @@ export function formatDataMap(data: any[]) {
             Math.min(...d.pvwatts.outputs.ac_monthly),
             Math.max(...d.pvwatts.outputs.ac_monthly)
         );
-
+        // monthly ac range is directly correlated to monthly solar rad
+        // so the month where ac is max is the month that solar rad is max 
         minMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i]);
         maxMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i + 1]);
 
+        // get average daily solar rad by month
         solrad_range.push(
             Math.min(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[minMonth],
             Math.max(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[maxMonth]
@@ -167,10 +169,11 @@ export function formatDataMap(data: any[]) {
 
 export function getDataColors(data: any[][], dataId: number, dataRanges: number[][]) {
     const dataColors: string[] = [];
+    // had error here before, watch out for repeat error
     data.forEach(d => {
         const value = 100 * ((d[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
         const id = gradientProps.findIndex(color => value < color.offset);
-        console.log(id - 1)
+
         const { offset: d1, stopColor: r1 } = gradientProps[id - 1];
         const { offset: d2, stopColor: r2 } = gradientProps[id];
 

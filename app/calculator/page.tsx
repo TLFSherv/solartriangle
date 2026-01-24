@@ -5,7 +5,7 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { FormInputs, SolarArray } from "./types/types";
+import { FormInputs, SolarArray } from "@/app/types/types";
 import { cacheData, cacheExists, getCachedData } from "@/actions/data";
 
 export default function Calculator() {
@@ -15,28 +15,42 @@ export default function Calculator() {
         polygons: [],
         solarArrays: []
     };
+
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
     const [error, setError] = useState<{ success: boolean; details: any; }>();
     const [activeId, setActiveId] = useState(1);
     const router = useRouter();
 
-    // useEffect(() => {
-    //     const populateForm = async () => {
-    //         const exists = await cacheExists('calculatorData');
-    //         if (!exists) return
+    useEffect(() => {
+        const populateForm = async () => {
+            const exists = await cacheExists('calculatorData');
+            if (!exists) return
 
-    //         const cacheResult = await getCachedData('calculatorData');
-    //         const data = cacheResult.data;
-    //         let inputs: FormInputs = {
-    //             address: data.address,
-    //             location: { lat: data.lat, lng: data.lng },
-    //             polygons: data.solarArrays.map((solarArray: SolarArray) => solarArray.shape),
-    //             solarArrays: data.solarArrays
-    //         }
-    //         setInputs(inputs);
-    //     }
-    //     populateForm();
-    // }, [])
+            const cacheResult = await getCachedData('calculatorData');
+            const data = cacheResult.data;
+            let inputs: FormInputs = {
+                address: data.address,
+                location: new google.maps.LatLng(data.lat, data.lng),
+                polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
+                    return {
+                        id,
+                        polygon: new google.maps.Polygon({
+                            paths: shape,
+                            strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
+                            fillColor: "#444444",
+                            fillOpacity: 0.25,
+                            draggable: true,
+                            editable: true,
+                        })
+                    }
+                }),
+                solarArrays: data.solarArrays
+            }
+
+            setInputs(inputs);
+        }
+        populateForm();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.name;
@@ -49,8 +63,8 @@ export default function Calculator() {
 
         const formData = {
             address: inputs.address,
-            lat: String(inputs.location?.lat || ""),
-            lng: String(inputs.location?.lng || ""),
+            lat: String(inputs.location?.lat() || ""),
+            lng: String(inputs.location?.lng() || ""),
             solarArrays: inputs.solarArrays
         };
         const cacheResult = await cacheData("calculatorData", formData)

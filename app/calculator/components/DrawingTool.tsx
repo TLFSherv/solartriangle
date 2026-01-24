@@ -4,7 +4,8 @@ import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints } from '../lib/geometryTool'
-import { FormInputs } from "@/app/types/types";
+import { FormInputs, SolarArray } from "@/app/types/types";
+import { cacheExists, getCachedData } from "@/actions/data";
 
 export default function DrawingTool(props: {
     inputs: FormInputs,
@@ -13,9 +14,10 @@ export default function DrawingTool(props: {
     setActiveId: React.Dispatch<React.SetStateAction<number>>
 }) {
     const map = useMap();
-    const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(null);
+    const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(props.inputs.polygons);
     const polygonsRef = useRef<{ id: number; polygon: google.maps.Polygon }[] | null>(polygons);
     const polygonIdRef = useRef(1);
+    const populatedMap = useRef(false);
     const { setInputs } = props;
 
     useEffect(() => {
@@ -31,6 +33,31 @@ export default function DrawingTool(props: {
         })
     }, [props.activeId])
 
+    // populate map with solar panels if user returns to calculator
+    useEffect(() => {
+        const populateMap = async () => {
+            const exists = await cacheExists('calculatorData');
+            if (!exists || !map ||
+                !props.inputs.polygons.length) return
+
+            // add event listeners back
+            props.inputs.polygons.forEach(({ id, polygon: poly }) => {
+                poly.addListener("click", () => props.setActiveId(id));
+
+                // update polygon if vertices change
+                poly.getPath().addListener("set_at", () => {
+                    setInputs((prev) => ({ ...prev, polygons: props.inputs.polygons || [] }))
+                });
+
+                poly.setMap(map);
+            })
+            populatedMap.current = true;
+            setPolygons(props.inputs.polygons);
+        }
+        // only call once
+        if (!populatedMap.current) populateMap();
+    }, [props.inputs.polygons.join('-')])
+
     const addPolygon = () => {
         if (!map) return;
 
@@ -41,7 +68,7 @@ export default function DrawingTool(props: {
 
         const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
         const path = createRectanglePoints(center, length, length);
-        const id = polygonIdRef.current;
+        const id = ((props.inputs.polygons.at(-1)?.id || -1) + 1) || polygonIdRef.current;
 
         const poly = new google.maps.Polygon({
             paths: path,
