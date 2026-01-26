@@ -7,14 +7,14 @@ import { CalculatorProvider } from "./context/CalculatorProvider";
 export default async function Dashboard() {
     const cacheResult = await getCachedData('calculatorData');
     const fetchResult = await fetchData(cacheResult.data);
-
+    console.log(fetchResult)
     return (
         <div className="space-y-12">
             <CalculatorProvider cacheData={cacheResult.data}>
                 <DataTable />
                 <Map data={fetchResult.data} />
+                <Chart data={fetchResult.data} />
             </CalculatorProvider>
-            <Chart data={fetchResult.data} />
             <br></br>
         </div>
     )

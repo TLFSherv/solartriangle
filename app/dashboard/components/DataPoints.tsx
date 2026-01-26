@@ -15,10 +15,9 @@ type Dataset = {
     y: number[];
     type: 'months' | 'hrs' | 'days';
 }
-export default function DataPoints(props: DataPoints) {
+export default function DataPoints({ dataset, id, settings, domain, range }: DataPoints) {
     const [selectedPoint, setSelectedPoint] = useState('');
-    const { dataset, id, settings, domain, range } = props;
-    console.log('hello')
+
     let yCoord = 0, points = "";
     const xScale = d3.scaleLinear()
         .domain(domain.x)

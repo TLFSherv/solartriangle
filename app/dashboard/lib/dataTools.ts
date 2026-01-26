@@ -1,9 +1,14 @@
 import { useMemo } from "react";
 import { getCellTemps, getPowerOutputs, getEnergyLosses, reduceDataByMonth } from "./solarTool";
 import { Dataset } from "../../types/types";
+import { type CalculatorData } from "@/app/types/types";
 import * as d3 from "d3";
 
-export function formatDataChart(inputData: any[], dataId: number, timeId: number[]): Dataset[] {
+export function formatDataChart(
+    inputData: any[],
+    calculatorData: CalculatorData,
+    dataId: number,
+    timeId: number[]): Dataset[] {
     const selectedOnce = timeId.length === 1;
     const check1 = (timeId[0] !== 0 || selectedOnce); // conditions to use kWh for Power and Irradiance data
     const check2 = (dataId === 2 && timeId[0] === 1 && selectedOnce); // conditons for using kWh for Losses data
@@ -13,7 +18,7 @@ export function formatDataChart(inputData: any[], dataId: number, timeId: number
     if (dataId === 2) dataName = check2 ? names[dataId][0] : names[dataId][1];
 
     const time_week = inputData[0].openmeteo.hourly.time;
-    const data = useMemo(() => inputData.map(d => {
+    const data = useMemo(() => inputData.map((d, i) => {
         const {
             global_tilted_irradiance: gti_week,
             wind_speed_10m: windSpeed_week,
@@ -27,7 +32,7 @@ export function formatDataChart(inputData: any[], dataId: number, timeId: number
             ac: ac_year
         } = d.pvwatts.outputs;
 
-        const area = 10;
+        const area = calculatorData.solarArrays[i].area;
         const cellTemps = getCellTemps(gti_week, windSpeed_week, temp_week)
         const power_week = getPowerOutputs(area, gti_week, cellTemps);
 
@@ -68,14 +73,16 @@ export function formatDataChart(inputData: any[], dataId: number, timeId: number
                 }
                 prevDate = date;
             }
+            // if timeId.length > 1 then a day has been selected, return the data for that day 
             if (timeId.length > 1) return dailyData[timeId[1]];
 
             let dailyDataTotals: Dataset = { x: [], y: [], type: "days", name: dataName };
             let dailyTotal = 0;
 
             dailyData.forEach(({ x, y },) => {
-                dailyDataTotals.x.push(x[0])
-                dailyTotal = y.reduce((acc, cur) => acc + cur)
+                dailyDataTotals.x.push(x[0]);
+                // sum all values in a day
+                dailyTotal = y.reduce((acc, cur) => acc + cur);
                 dailyDataTotals.y.push((check2 || check3) ? Math.round(dailyTotal) / 1000 : dailyTotal);
             })
             return dailyDataTotals;
@@ -128,38 +135,39 @@ export function formatDataMap(data: any[]) {
     let minMonth = 0, maxMonth = 0;
 
     const inputData = data.map((d, i) => {
+        const data = d.pvwatts.outputs;
         ac_range.push(
-            Math.min(...d.pvwatts.outputs.ac_monthly),
-            Math.max(...d.pvwatts.outputs.ac_monthly)
+            Math.min(...data.ac_monthly),
+            Math.max(...data.ac_monthly)
         );
-        // monthly ac range is directly correlated to monthly solar rad
-        // so the month where ac is max is the month that solar rad is max 
-        minMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i]);
-        maxMonth = d.pvwatts.outputs.ac_monthly.indexOf(ac_range[2 * i + 1]);
 
-        // get average daily solar rad by month
+        minMonth = data.ac_monthly.indexOf(ac_range[2 * i]);
+        maxMonth = data.ac_monthly.indexOf(ac_range[2 * i + 1]);
+
+        // get average daily solar radiation
+        // the best and worst month for ac output is the same as solar radiation
         solrad_range.push(
-            Math.min(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[minMonth],
-            Math.max(...d.pvwatts.outputs.poa_monthly) / daysPerMonth[maxMonth]
+            Math.min(...data.poa_monthly) / daysPerMonth[minMonth],
+            Math.max(...data.poa_monthly) / daysPerMonth[maxMonth]
         );
 
-        return [d.pvwatts.outputs.ac_annual / 12,
-        d.pvwatts.outputs.solrad_annual,
-        d.pvwatts.outputs.capacity_factor];
+        return [data.ac_annual / 12,
+        data.solrad_annual, // kWh/m2/day
+        data.capacity_factor];
     });
 
     const dataRanges = [
-        [Math.min(...ac_range), Math.max(...ac_range)],
-        [Math.min(...solrad_range), Math.max(...solrad_range)],
+        [Math.min(...ac_range), Math.max(...ac_range)], // range for monthly ac output
+        [Math.min(...solrad_range), Math.max(...solrad_range)], // range for daily average solar radiation
         [10, 25] // capacity factors range from 10% to 25%
     ];
 
     const cleanRanges: [number, number][] = dataRanges.map(range => {
         let multipleOfTen = Math.pow(10, Math.trunc(Math.log10(range[0])));
-        const cleanStart = Math.trunc(range[0] / multipleOfTen) * multipleOfTen;
+        const cleanStart = Math.floor(range[0] / multipleOfTen) * multipleOfTen;
 
         multipleOfTen = Math.pow(10, Math.trunc(Math.log10(range[1])));
-        const cleanEnd = Math.trunc(range[1] / multipleOfTen) * multipleOfTen;
+        const cleanEnd = Math.ceil(range[1] / multipleOfTen) * multipleOfTen;
 
         return [cleanStart, cleanEnd];
     });
@@ -169,7 +177,7 @@ export function formatDataMap(data: any[]) {
 
 export function getDataColors(data: any[][], dataId: number, dataRanges: number[][]) {
     const dataColors: string[] = [];
-    // had error here before, watch out for repeat error
+
     data.forEach(d => {
         const value = 100 * ((d[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
         const id = gradientProps.findIndex(color => value < color.offset);
