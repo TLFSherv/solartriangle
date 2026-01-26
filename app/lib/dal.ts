@@ -1,25 +1,54 @@
+import 'server-only'
+import { cookies } from 'next/headers'
 import db from "../../src/db/connection"
-import { users, NewUser } from "../../src/db/schema"
+import { eq } from 'drizzle-orm'
+import { users, NewUser, User } from "../../src/db/schema"
 import bcrypt from 'bcrypt'
 import { nanoid } from "nanoid"
+import { encrypt, decrypt } from './session'
 
-type User = {
-    id: string;
-    password: string;
+export async function getUserByEmail(email: string): Promise<User> {
+    const user = await db.select().from(users).where(eq(users.email, email));
+    return user[0];
 }
 
-export async function getUserByUsername(username: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-        resolve({ id: '1', password: 'testtest' })
+export async function createSession(userId: string, email: string) {
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    const session = await encrypt({ id: userId, email });
+    const cookieStore = await cookies();
+
+    cookieStore.set('session', session, {
+        httpOnly: true,
+        //secure: true,
+        expires: expiresAt,
+        sameSite: 'lax',
+        path: '/'
     });
 }
+// extend session duration if user reopens application
+export async function updateSession() {
+    const session = (await cookies()).get('session')?.value;
+    const payload = await decrypt(session);
 
-export async function createSession(userId: string) {
-    console.log('session created');
+    if (!session || !payload) {
+        return null
+    }
+
+    const expires = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+    const cookieStore = await cookies()
+    cookieStore.set('session', session, {
+        httpOnly: true,
+        //secure: true,
+        expires: expires,
+        sameSite: 'lax',
+        path: '/'
+    })
 }
 
 export async function deleteSession() {
-    console.log('session deleted');
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
 }
 
 export async function createUser(email: string, password: string) {
@@ -36,15 +65,8 @@ export async function createUser(email: string, password: string) {
     const data = await db
         .insert(users)
         .values(userFields)
-        .returning({ id: users.id });
+        .returning({ id: users.id, email: users.email });
 
-    const user = data[0];
+    return data[0];
 
-    if (!user) {
-        return {
-            message: "An error occured when creating user account"
-        }
-    }
-
-    return user
 }

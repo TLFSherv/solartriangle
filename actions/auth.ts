@@ -1,7 +1,7 @@
 'use server'
 import { z } from "zod"
 import { verifyPassword } from "@/app/lib/auth"
-import { getUserByUsername, createUser, createSession, deleteSession } from "@/app/lib/dal";
+import { getUserByEmail, createUser, createSession, deleteSession } from "@/app/lib/dal";
 import { redirect } from "next/navigation";
 
 const SignInSchema = z.object({
@@ -41,7 +41,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
                 errors: z.flattenError(validationResult.error).fieldErrors
             }
 
-        const user = await getUserByUsername(data.email);
+        const user = await getUserByEmail(data.email);
         if (!user) {
             return {
                 success: false,
@@ -63,7 +63,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             }
         }
 
-        await createSession(user.id);
+        await createSession(user.email, user.id);
 
         return {
             success: true,
@@ -99,7 +99,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
             }
 
         // Check if user already exists
-        const existingUser = await getUserByUsername(data.email);
+        const existingUser = await getUserByEmail(data.email);
         if (existingUser) {
             return {
                 success: false,
@@ -121,7 +121,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
         }
 
         // Create the session for the newly registered user
-        await createSession(user.id);
+        await createSession(user.id, user.email);
 
         return {
             success: true,
