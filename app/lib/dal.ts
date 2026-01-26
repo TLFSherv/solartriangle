@@ -7,6 +7,17 @@ import bcrypt from 'bcrypt'
 import { nanoid } from "nanoid"
 import { encrypt, decrypt } from './session'
 
+export async function getLoggedInUser() {
+    const session = (await cookies()).get('session')?.value;
+    const payload = await decrypt(session);
+
+    if (!session || !payload) {
+        return null
+    }
+
+    return payload;
+}
+
 export async function getUserByEmail(email: string): Promise<User> {
     const user = await db.select().from(users).where(eq(users.email, email));
     return user[0];
@@ -56,7 +67,6 @@ export async function createUser(email: string, password: string) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const userFields: NewUser = {
-        id: nanoid(),
         email,
         password: hashedPassword,
         dateCreated: new Date()
@@ -68,5 +78,4 @@ export async function createUser(email: string, password: string) {
         .returning({ id: users.id, email: users.email });
 
     return data[0];
-
 }

@@ -1,7 +1,7 @@
 'use server'
 import { z } from "zod"
 import { verifyPassword } from "@/app/lib/auth"
-import { getUserByEmail, createUser, createSession, deleteSession } from "@/app/lib/dal";
+import { getUserByEmail, createUser, createSession, deleteSession, getLoggedInUser } from "@/app/lib/dal";
 import { redirect } from "next/navigation";
 
 const SignInSchema = z.object({
@@ -23,6 +23,11 @@ export type ActionResponse = {
     message: string;
     errors?: Record<string, string[]>;
     error?: string;
+}
+
+export async function getUsersEmail() {
+    const user = await getLoggedInUser();
+    return user?.email;
 }
 
 export async function signIn(formData: FormData): Promise<ActionResponse> {
