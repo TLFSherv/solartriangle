@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Link from 'next/link'
 import Image from 'next/image'
 import logo from '../public/logo.png'
 import Navbar from "./components/Navbar";
+import AccountDropdown from "./components/AccountDropdown";
 
 export const metadata: Metadata = {
   title: "Solar Triangle",
@@ -30,11 +30,7 @@ export default function RootLayout({
             width={120}
             height={65}
           />
-          <Link
-            href={"/signin"}
-            className="font-[Darker_Grotesque] text-lg">
-            Account
-          </Link>
+          <AccountDropdown />
         </header>
         <main className="flex-1">
           <Navbar />
@@ -47,3 +43,4 @@ export default function RootLayout({
     </html>
   );
 }
+
