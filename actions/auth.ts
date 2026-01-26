@@ -79,6 +79,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
     }
 }
 
+// validate form fields on server
 export async function signUp(formData: FormData): Promise<ActionResponse> {
     try {
         // Extract data from form

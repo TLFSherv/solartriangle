@@ -68,6 +68,7 @@ export const solarArrayRelations = relations(solarArrays,
     }))
 
 export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
 export type SolarArray = typeof solarArrays.$inferSelect
 export type Polygon = typeof polygons.$inferSelect
 export type Addresse = typeof addresses.$inferSelect
