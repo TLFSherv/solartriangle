@@ -3,8 +3,7 @@ import { useActionState } from "react"
 import { useRouter } from "next/navigation"
 import Button from "@/app/components/Button"
 import Link from "next/link"
-import { signIn } from "@/actions/auth"
-import { type ActionResponse, signUp } from "@/actions/auth"
+import { type ActionResponse, signIn } from "@/actions/auth"
 import toast, { Toaster } from "react-hot-toast"
 
 export default function Sigin() {

@@ -2,8 +2,10 @@
 import { fetchWeatherApi } from "openmeteo";
 import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
-import { CalculatorData, FormInputs } from "@/app/types/types";
+import { type CalculatorData, type FormInputs, type SolarArray } from "@/app/types/types";
 import z from 'zod';
+import { verifySession } from "@/app/lib/session";
+import { getSolarArrays } from "@/app/lib/dal";
 
 type SolarAPIParams = {
     lat: string;
@@ -139,7 +141,6 @@ export async function cacheExists(key: string) {
     }
 }
 
-
 // store form input data from calculator page in redis
 export async function cacheData(key: string, data: CalculatorData) {
     try {
@@ -161,6 +162,41 @@ export async function cacheData(key: string, data: CalculatorData) {
         };
     } catch (e: any) {
         return { success: false, details: e.message };
+    }
+}
+
+export async function getCalculatorData(): Promise<FormInputs | undefined> {
+    // check if user is logged in
+    const session = await verifySession();
+    if (session?.isAuth) {
+        // send back users data if it exists
+        const data = getSolarArrays(session.id);
+        if (data) return data;
+    }
+
+    // send back cached data it it exists
+    const exists = await cacheExists('calculatorData');
+    if (!exists) return
+
+    const cacheResult = await getCachedData('calculatorData');
+    const data = cacheResult.data;
+    return {
+        address: data.address,
+        location: new google.maps.LatLng(data.lat, data.lng),
+        polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
+            return {
+                id,
+                polygon: new google.maps.Polygon({
+                    paths: shape,
+                    strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
+                    fillColor: "#444444",
+                    fillOpacity: 0.25,
+                    draggable: true,
+                    editable: true,
+                })
+            }
+        }),
+        solarArrays: data.solarArrays
     }
 }
 

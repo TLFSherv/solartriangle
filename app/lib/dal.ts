@@ -1,65 +1,15 @@
 import 'server-only'
-import { cookies } from 'next/headers'
 import db from "../../src/db/connection"
 import { eq } from 'drizzle-orm'
 import { users, NewUser, User } from "../../src/db/schema"
 import bcrypt from 'bcrypt'
-import { encrypt, decrypt } from './session'
-
-export const verifySession = async () => {
-    const session = (await cookies()).get('session')?.value;
-    const payload = await decrypt(session);
-
-    if (!session || !payload) {
-        return null
-    }
-    console.log(payload)
-    return { isAuth: true, ...payload }
-}
+import { type FormInputs } from "@/app/types/types";
 
 export async function getUserByEmail(email: string): Promise<User> {
     const user = await db.select().from(users).where(eq(users.email, email));
     return user[0];
 }
 
-export async function createSession(userId: string, email: string) {
-    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
-    const session = await encrypt({ id: userId, email });
-    const cookieStore = await cookies();
-
-    cookieStore.set('session', session, {
-        httpOnly: true,
-        //secure: true,
-        expires: expiresAt,
-        sameSite: 'lax',
-        path: '/'
-    });
-}
-// extend session duration if user reopens application
-export async function updateSession() {
-    const session = (await cookies()).get('session')?.value;
-    const payload = await decrypt(session);
-
-    if (!session || !payload) {
-        return null
-    }
-
-    const expires = new Date(Date.now() + 2 * 60 * 60 * 1000);
-
-    const cookieStore = await cookies()
-    cookieStore.set('session', session, {
-        httpOnly: true,
-        //secure: true,
-        expires: expires,
-        sameSite: 'lax',
-        path: '/'
-    })
-}
-
-export async function deleteSession() {
-    const cookieStore = await cookies();
-    cookieStore.delete('session');
-}
 // most errors in the login flow would be considered server errors so respond with status 500
 export async function createUser(email: string, password: string) {
     // hash password before storing it
@@ -78,3 +28,20 @@ export async function createUser(email: string, password: string) {
 
     return data[0];
 }
+
+export async function getSolarArrays(userId: string): Promise<FormInputs> {
+
+    return {
+        address: '',
+        location: null,
+        polygons: [],
+        solarArrays: []
+    };
+}
+export async function createSolarArrays(userId: string, data: FormInputs) {
+
+}
+export async function updateSolarArrays(userId: string, data: FormInputs) {
+
+}
+

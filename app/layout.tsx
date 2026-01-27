@@ -4,7 +4,7 @@ import Image from 'next/image'
 import logo from '../public/logo.png'
 import Navbar from "./components/Navbar";
 import AccountMenu from "./components/AccountMenu";
-import { verifySession } from "./lib/dal";
+import { verifySession } from "./lib/session";
 
 export const metadata: Metadata = {
   title: "Solar Triangle",

@@ -5,8 +5,8 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { FormInputs, SolarArray } from "@/app/types/types";
-import { cacheData, cacheExists, getCachedData } from "@/actions/data";
+import { type FormInputs } from "@/app/types/types";
+import { cacheData, getCalculatorData } from "@/actions/data";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -22,32 +22,10 @@ export default function Calculator() {
     const router = useRouter();
 
     useEffect(() => {
+        // check cache or database for data and populate the form
         const populateForm = async () => {
-            const exists = await cacheExists('calculatorData');
-            if (!exists) return
-
-            const cacheResult = await getCachedData('calculatorData');
-            const data = cacheResult.data;
-            let inputs: FormInputs = {
-                address: data.address,
-                location: new google.maps.LatLng(data.lat, data.lng),
-                polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
-                    return {
-                        id,
-                        polygon: new google.maps.Polygon({
-                            paths: shape,
-                            strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
-                            fillColor: "#444444",
-                            fillOpacity: 0.25,
-                            draggable: true,
-                            editable: true,
-                        })
-                    }
-                }),
-                solarArrays: data.solarArrays
-            }
-
-            setInputs(inputs);
+            const data = await getCalculatorData();
+            if (data) setInputs(data);
         }
         populateForm();
     }, []);

@@ -1,8 +1,9 @@
 'use server'
 import { z } from "zod"
-import { verifyPassword } from "@/app/lib/auth"
-import { getUserByEmail, createUser, createSession, deleteSession, verifySession } from "@/app/lib/dal";
+import { createSession, deleteSession } from "@/app/lib/session"
+import { getUserByEmail, createUser } from "@/app/lib/dal";
 import { redirect } from "next/navigation";
+import bcrypt from 'bcrypt'
 
 const SignInSchema = z.object({
     email: z.email("Invalid email format").min(1, 'Email is required'),
@@ -51,8 +52,8 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
                 }
             }
         }
-
-        const isPasswordValid = await verifyPassword(data.password, user.password);
+        // verify password
+        const isPasswordValid = await bcrypt.compare(user.password, data.password);
         if (!isPasswordValid) {
             return {
                 success: false,
