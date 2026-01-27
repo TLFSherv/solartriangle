@@ -3,8 +3,8 @@ import "./globals.css";
 import Image from 'next/image'
 import logo from '../public/logo.png'
 import Navbar from "./components/Navbar";
-import AccountDropdown from "./components/AccountDropdown";
-import { getUsersEmail } from '@/actions/auth';
+import AccountMenu from "./components/AccountMenu";
+import { verifySession } from "./lib/dal";
 
 export const metadata: Metadata = {
   title: "Solar Triangle",
@@ -16,7 +16,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const userEmail = await getUsersEmail();
+  const session = await verifySession();
+  const email = session?.email;
+
   return (
     <html lang="en">
       <head>
@@ -32,7 +34,7 @@ export default async function RootLayout({
             width={120}
             height={65}
           />
-          <AccountDropdown email={userEmail} />
+          <AccountMenu email={email} />
         </header>
         <main className="flex-1">
           <Navbar />

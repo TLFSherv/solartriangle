@@ -4,18 +4,17 @@ import db from "../../src/db/connection"
 import { eq } from 'drizzle-orm'
 import { users, NewUser, User } from "../../src/db/schema"
 import bcrypt from 'bcrypt'
-import { nanoid } from "nanoid"
 import { encrypt, decrypt } from './session'
 
-export async function getLoggedInUser() {
+export const verifySession = async () => {
     const session = (await cookies()).get('session')?.value;
     const payload = await decrypt(session);
 
     if (!session || !payload) {
         return null
     }
-
-    return payload;
+    console.log(payload)
+    return { isAuth: true, ...payload }
 }
 
 export async function getUserByEmail(email: string): Promise<User> {
@@ -61,7 +60,7 @@ export async function deleteSession() {
     const cookieStore = await cookies();
     cookieStore.delete('session');
 }
-
+// most errors in the login flow would be considered server errors so respond with status 500
 export async function createUser(email: string, password: string) {
     // hash password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
