@@ -23,7 +23,7 @@ export default function AccountMenu({ email }: { email: string | undefined }) {
             className='font-[Darker_Grotesque] text-lg'>
             {email || 'Account'}
             {isVisible &&
-                <ol className='fixed z-1 bg-black text-base/6'>
+                <ol className='absolute z-1 bg-black text-base/6'>
                     {isLoggedIn ?
                         <li onClick={clickHandler}
                             className='cursor-pointer hover:underline decoration-[#F0662A]'>
