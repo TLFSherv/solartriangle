@@ -2,19 +2,12 @@
 import { fetchWeatherApi } from "openmeteo";
 import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
-import { type CalculatorData, type FormInputs, type SolarArray } from "@/app/types/types";
 import z from 'zod';
 import { verifySession } from "@/app/lib/session";
-import { getSolarArrays } from "@/app/lib/dal";
+import { getSolarArrays, createSolarArrays } from "@/app/lib/dal";
+import { type CalculatorData, type FormInputs, type SolarArray, type SolarAPIParams } from "@/app/types/types";
 
-type SolarAPIParams = {
-    lat: string;
-    lng: string;
-    capacity: number;
-    quantity: number;
-    azimuth: number;
-    tilt: number;
-}
+
 
 const calculatorSchema = z.object({
     address: z.string().nonempty("no address"),
@@ -165,38 +158,65 @@ export async function cacheData(key: string, data: CalculatorData) {
     }
 }
 
-export async function getCalculatorData(): Promise<FormInputs | undefined> {
+export async function getCalculatorData(): Promise<{ isAuth: boolean; data: FormInputs | null }> {
     // check if user is logged in
     const session = await verifySession();
     if (session?.isAuth) {
         // send back users data if it exists
-        const data = getSolarArrays(session.id);
-        if (data) return data;
+        const data = await getSolarArrays(session.id);
+        if (data) return { isAuth: true, data: data };
     }
 
     // send back cached data it it exists
     const exists = await cacheExists('calculatorData');
-    if (!exists) return
+    if (!exists) return { isAuth: false, data: null }
 
     const cacheResult = await getCachedData('calculatorData');
     const data = cacheResult.data;
     return {
-        address: data.address,
-        location: new google.maps.LatLng(data.lat, data.lng),
-        polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
-            return {
-                id,
-                polygon: new google.maps.Polygon({
-                    paths: shape,
-                    strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
-                    fillColor: "#444444",
-                    fillOpacity: 0.25,
-                    draggable: true,
-                    editable: true,
-                })
-            }
-        }),
-        solarArrays: data.solarArrays
+        isAuth: false,
+        data: {
+            address: data.address,
+            location: new google.maps.LatLng(data.lat, data.lng),
+            polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
+                return {
+                    id,
+                    polygon: new google.maps.Polygon({
+                        paths: shape,
+                        strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
+                        fillColor: "#444444",
+                        fillOpacity: 0.25,
+                        draggable: true,
+                        editable: true,
+                    })
+                }
+            }),
+            solarArrays: data.solarArrays
+        }
+    }
+}
+
+export async function saveToDatabase(data: CalculatorData) {
+    try {
+        // validate form data
+        const validationResult = z.safeParse(calculatorSchema, data);
+        if (!validationResult.success) return {
+            success: false,
+            details: z.flattenError(validationResult.error)
+        }
+
+        // get user id
+        const session = await verifySession();
+        if (!session?.isAuth) return { success: false, details: 'User is not logged in' };
+        const userId = session.id;
+
+        // write data to database
+        const result = await createSolarArrays(userId, data);
+        if (!result?.success) throw Error(result?.details)
+
+        return { success: true, details: 'solar array saved successfully' };
+    } catch (e: any) {
+        return { success: false, details: e.message };
     }
 }
 

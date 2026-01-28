@@ -71,7 +71,7 @@ export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type SolarArray = typeof solarArrays.$inferSelect
 export type Polygon = typeof polygons.$inferSelect
-export type Addresse = typeof addresses.$inferSelect
+export type Address = typeof addresses.$inferSelect
 
 export const insertUserSchema = createInsertSchema(users)
 export const selectUserSchema = createSelectSchema(users)

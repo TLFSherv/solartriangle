@@ -3,7 +3,7 @@ import db from "../../src/db/connection"
 import { eq } from 'drizzle-orm'
 import { users, NewUser, User } from "../../src/db/schema"
 import bcrypt from 'bcrypt'
-import { type FormInputs } from "@/app/types/types";
+import { CalculatorData, type FormInputs } from "@/app/types/types";
 
 export async function getUserByEmail(email: string): Promise<User> {
     const user = await db.select().from(users).where(eq(users.email, email));
@@ -38,10 +38,25 @@ export async function getSolarArrays(userId: string): Promise<FormInputs> {
         solarArrays: []
     };
 }
-export async function createSolarArrays(userId: string, data: FormInputs) {
+export async function createSolarArrays(userId: string, data: CalculatorData) {
+
+    try {
+        // 1. check if user already has solar arrays
+        const solarArrays = await getSolarArrays(userId);
+        // 2. if they do call update function
+        if (solarArrays) updateSolarArrays(userId, data);
+        //3. if they don't then create
+        else {
+
+        }
+    } catch (e: any) {
+        return { success: false, details: "Error creating solar arrays" };
+    }
 
 }
-export async function updateSolarArrays(userId: string, data: FormInputs) {
+
+async function updateSolarArrays(userId: string, data: CalculatorData) {
+
 
 }
 

@@ -1,10 +1,10 @@
-type FormInputs = {
+export type FormInputs = {
     address: string;
     location: google.maps.LatLng | null;
     polygons: { id: number; polygon: google.maps.Polygon }[];
     solarArrays: SolarArray[];
 }
-type SolarArray = {
+export type SolarArray = {
     id: number;
     solarCapacity: number;
     numberOfPanels: number;
@@ -13,33 +13,33 @@ type SolarArray = {
     shape: { lat: number; lng: number; }[];
 }
 
-type Suggestion = {
+export type Suggestion = {
     placePrediction: {
         placeId: string;
         text: { text: string };
     };
 };
 
-type Dataset = {
+export type Dataset = {
     x: string[];
     y: number[];
     type: 'months' | 'hrs' | 'days';
     name: string;
 }
 
-type ColorGradient = {
+export type ColorGradient = {
     offset: number;
     stopColor: string;
 }[]
 
-type CalculatorData = {
+export type CalculatorData = {
     address: string;
     lat: string;
     lng: string;
     solarArrays: SolarArray[]
 }
 
-type SolarAPIParams = {
+export type SolarAPIParams = {
     lat: string;
     lng: string;
     capacity: number;
@@ -47,6 +47,4 @@ type SolarAPIParams = {
     azimuth: number;
     tilt: number;
 }
-
-export { type FormInputs, type Suggestion, type Dataset, type ColorGradient, type SolarArray, type CalculatorData, type SolarAPIParams }
 

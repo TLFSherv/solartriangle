@@ -133,7 +133,7 @@ export default function SolarArrayForm(props: {
                 </div>
                 <div className="space-y-1">
                     <label className="text-center block" htmlFor="numberOfPanels">
-                        Number of panels
+                        Panel count
                     </label>
                     <input
                         name="numberOfPanels"
