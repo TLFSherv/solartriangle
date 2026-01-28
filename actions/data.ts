@@ -4,10 +4,12 @@ import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
 import z from 'zod';
 import { verifySession } from "@/app/lib/session";
-import { getSolarArrays, createSolarArrays } from "@/app/lib/dal";
+import { getSolarArrays, insertSolarArray, insertAddress, insertPolygon, updateSolarArray, updatePolygon, deleteSolarArray } from "@/app/lib/dal";
 import { type CalculatorData, type FormInputs, type SolarArray, type SolarAPIParams } from "@/app/types/types";
+import { NewSolarArray, NewPolygon, NewAddress } from "../src/db/schema";
+import Azimuth from "@/app/learn/topics/azimuth/page";
 
-
+type DatabaseData = { solarArrays: NewSolarArray; polygons: NewPolygon; addresses: NewAddress };
 
 const calculatorSchema = z.object({
     address: z.string().nonempty("no address"),
@@ -22,7 +24,6 @@ const calculatorSchema = z.object({
         shape: z.array(z.object({ lat: z.number(), lng: z.number() }))
     })).min(1)
 })
-
 
 const revalidate = 600
 
@@ -158,13 +159,58 @@ export async function cacheData(key: string, data: CalculatorData) {
     }
 }
 
+function formatData(data: DatabaseData[]): FormInputs {
+    const polygons: { id: number; polygon: google.maps.Polygon }[] = [];
+    const solarArrays: SolarArray[] = [];
+    data.forEach(d => {
+        const path = JSON.parse(d.polygons.coords);
+        const { name: id, capacity, quantity } = d.solarArrays;
+        const { area, azimuth } = d.polygons
+
+        polygons.push({
+            id: parseInt(id),
+            polygon: new google.maps.Polygon({
+                paths: path,
+                strokeColor: 1 === 1 ? "#F0662A" : "#1E1E1E",
+                fillColor: "#444444",
+                fillOpacity: 0.25,
+                draggable: true,
+                editable: true,
+            })
+        });
+        solarArrays.push({
+            id: parseInt(id),
+            solarCapacity: capacity,
+            numberOfPanels: quantity as number,
+            area: area as number,
+            azimuth: azimuth as number,
+            shape: path
+        })
+    });
+
+    const {
+        name: address,
+        latitude: ltd,
+        longitude: lng
+    } = data[0].addresses;
+
+    return {
+        address,
+        location: new google.maps.LatLng(
+            parseInt(ltd),
+            parseInt(lng)),
+        polygons,
+        solarArrays
+    }
+
+}
 export async function getCalculatorData(): Promise<{ isAuth: boolean; data: FormInputs | null }> {
     // check if user is logged in
     const session = await verifySession();
     if (session?.isAuth) {
         // send back users data if it exists
         const data = await getSolarArrays(session.id);
-        if (data) return { isAuth: true, data: data };
+        if (data) return { isAuth: true, data: formatData(data) };
     }
 
     // send back cached data it it exists
@@ -196,10 +242,10 @@ export async function getCalculatorData(): Promise<{ isAuth: boolean; data: Form
     }
 }
 
-export async function saveToDatabase(data: CalculatorData) {
+export async function saveToDatabase(newData: CalculatorData) {
     try {
         // validate form data
-        const validationResult = z.safeParse(calculatorSchema, data);
+        const validationResult = z.safeParse(calculatorSchema, newData);
         if (!validationResult.success) return {
             success: false,
             details: z.flattenError(validationResult.error)
@@ -210,10 +256,64 @@ export async function saveToDatabase(data: CalculatorData) {
         if (!session?.isAuth) return { success: false, details: 'User is not logged in' };
         const userId = session.id;
 
-        // write data to database
-        const result = await createSolarArrays(userId, data);
-        if (!result?.success) throw Error(result?.details)
+        // write to tables
+        const currentData = await getSolarArrays(userId);
+        const currentDataIds = currentData.map(data => data.solarArrays.name);
+        const newDataIds: string[] = [];
 
+        for (let i = 0; i < newData.solarArrays.length; i++) {
+            let { id, solarCapacity, numberOfPanels, area, azimuth, shape } =
+                newData.solarArrays[i];
+            newDataIds.push(id.toString());
+            const solarArray: NewSolarArray = {
+                name: id.toString(),
+                capacity: solarCapacity,
+                quantity: numberOfPanels,
+                userId: userId,
+                addressId: undefined,
+                polygonId: undefined,
+                lastModified: new Date(),
+                dateCreated: undefined
+            }
+            const polygon: NewPolygon = {
+                coords: JSON.stringify(shape),
+                area: area,
+                azimuth: azimuth,
+                numberOfPoints: shape.length
+            }
+            const address: NewAddress = {
+                name: newData.address,
+                latitude: newData.lat,
+                longitude: newData.lng
+            }
+            if (currentDataIds.includes(newDataIds[i])) {
+                // update polygon
+                const polygonId = await updatePolygon(polygon);
+                // update solar array
+                solarArray.polygonId = polygonId;
+                solarArray.addressId = currentData[i].addresses.id;
+                updateSolarArray(solarArray);
+            }
+            else {
+                //create polygon
+                const polygonId = await insertPolygon(polygon);
+                //create address
+                const addressId = await insertAddress(address);
+                // create solar array
+                solarArray.polygonId = polygonId;
+                solarArray.addressId = addressId;
+                solarArray.dateCreated = new Date();
+                insertSolarArray(solarArray)
+            }
+        }
+
+        for (let i = 0; i < currentData.length; ++i) {
+            const { name, id } = currentData[i].solarArrays;
+            if (!newDataIds.includes(name)) {
+                // delete solar array
+                const result = await deleteSolarArray(id);
+            }
+        }
         return { success: true, details: 'solar array saved successfully' };
     } catch (e: any) {
         return { success: false, details: e.message };

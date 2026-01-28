@@ -22,6 +22,7 @@ export const users = pgTable('users', {
 // when solar array is deleted auto delete polygon
 export const solarArrays = pgTable('solarArrays', {
     id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name').notNull(),
     capacity: integer('capacity').notNull(),
     quantity: integer('quantity'),
     userId: uuid('user_id').references(() => users.id),
@@ -43,7 +44,7 @@ export const addresses = pgTable('addresses', {
     id: uuid('id').primaryKey().defaultRandom(),
     latitude: varchar('latitude', { length: 50 }).notNull(),
     longitude: varchar('longitude', { length: 50 }).notNull(),
-    name: varchar('name', { length: 125 }).notNull()
+    name: varchar('name', { length: 125 }).notNull().unique()
 })
 
 export const userRelations = relations(users, ({ many }) => ({
@@ -70,8 +71,14 @@ export const solarArrayRelations = relations(solarArrays,
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type SolarArray = typeof solarArrays.$inferSelect
+export type NewSolarArray = typeof solarArrays.$inferInsert
 export type Polygon = typeof polygons.$inferSelect
+export type NewPolygon = typeof polygons.$inferInsert
 export type Address = typeof addresses.$inferSelect
+export type NewAddress = typeof addresses.$inferInsert
 
 export const insertUserSchema = createInsertSchema(users)
 export const selectUserSchema = createSelectSchema(users)
+export const insertSolarArraySchema = createInsertSchema(solarArrays)
+export const insertPolygonSchema = createInsertSchema(polygons)
+export const insertAddressSchema = createInsertSchema(addresses)
