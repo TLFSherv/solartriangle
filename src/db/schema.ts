@@ -5,10 +5,10 @@ import {
     text,
     timestamp,
     boolean,
-    integer
+    integer,
+    numeric
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
-import { string } from 'zod'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 
 export const users = pgTable('users', {
@@ -22,7 +22,7 @@ export const users = pgTable('users', {
 // when solar array is deleted auto delete polygon
 export const solarArrays = pgTable('solarArrays', {
     id: uuid('id').primaryKey().defaultRandom(),
-    name: varchar('name').notNull(),
+    name: varchar('name', { length: 24 }).notNull(),
     capacity: integer('capacity').notNull(),
     quantity: integer('quantity'),
     userId: uuid('user_id').references(() => users.id),
@@ -34,9 +34,9 @@ export const solarArrays = pgTable('solarArrays', {
 
 export const polygons = pgTable('polygons', {
     id: uuid('id').primaryKey().defaultRandom(),
-    area: integer('area'),
+    area: varchar('area', { length: 12 }),
     numberOfPoints: integer('number_of_points'),
-    azimuth: integer('azimuth'),
+    azimuth: varchar('azimuth', { length: 12 }),
     coords: text('coords').notNull(),
 })
 

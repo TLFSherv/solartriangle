@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 import GoogleMap from "./GoogleMap";
 import HeatMap from "./HeatMap";
-import { formatDataMap, getDataColors, gradientProps } from "../lib/dataTools";
+import { formatMapData, getDataColors, gradientProps } from "../lib/dataTools";
 
 export default function Map({ data }: { data: any[] }) {
     const [dataId, setDataId] = useState(0);
-    const [formattedData, dataRanges] = formatDataMap(data);
+    const [formattedData, dataRanges] = formatMapData(data);
     const dataColors = getDataColors(formattedData, dataId, dataRanges);
 
     return (

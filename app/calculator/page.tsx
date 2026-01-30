@@ -5,7 +5,7 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { type FormInputs, CalculatorData } from "@/app/types/types";
+import { type FormInputs } from "@/app/types/types";
 import { cacheData, getCalculatorData, saveToDatabase } from "@/actions/data";
 
 export default function Calculator() {
@@ -21,13 +21,32 @@ export default function Calculator() {
     const [activeId, setActiveId] = useState(1);
     const [isAuth, setIsAuth] = useState(false);
     const router = useRouter();
-
     useEffect(() => {
         // check cache or database for data and populate the form
         const initForm = async () => {
-            const result = await getCalculatorData();
-            if (result.data) setInputs(result.data);
-            setIsAuth(result.isAuth);
+            const { isAuth, data } = await getCalculatorData();
+            setIsAuth(isAuth);
+            if (!data) return
+
+            let inputs: FormInputs = {
+                address: data.address,
+                location: new google.maps.LatLng(parseFloat(data.lat), parseFloat(data.lng)),
+                polygons: data.solarArrays.map(({ shape, id }) => {
+                    return {
+                        id,
+                        polygon: new google.maps.Polygon({
+                            paths: shape,
+                            strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
+                            fillColor: "#444444",
+                            fillOpacity: 0.25,
+                            draggable: true,
+                            editable: true,
+                        })
+                    }
+                }),
+                solarArrays: data.solarArrays
+            }
+            setInputs(inputs);
         }
         initForm();
     }, []);
@@ -62,19 +81,15 @@ export default function Calculator() {
     }
 
     const handleSave = async () => {
-        const data: CalculatorData = {
-            address: inputs.address,
-            lat: inputs.location?.lat().toString() as string,
-            lng: inputs.location?.lng().toString() as string,
-            solarArrays: inputs.solarArrays,
-        }
+        const lat = inputs.location?.lat().toString() || "";
+        const lng = inputs.location?.lng().toString() || "";
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
-        const result = await saveToDatabase(data);
-        console.log(result);
+        const result = await saveToDatabase(inputs.address, lat, lng, inputs.solarArrays);
         setStatus({
             value: result.success ? FormStatus.Success : FormStatus.Error,
             details: result.details
         });
+        console.log(result);
     }
 
     return (

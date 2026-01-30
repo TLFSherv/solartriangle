@@ -14,7 +14,7 @@ export default function Axis({ type, name, domain, range }: Axis) {
             .range(range);
 
         const width = range[1] - range[0];
-        const pixelsPerTick = 50;
+        const pixelsPerTick = 30;
         const numberOfTicksTarget = Math.max(
             1,
             Math.floor(

@@ -1,6 +1,6 @@
 import 'server-only'
 import db from "../../src/db/connection"
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import {
     users, solarArrays, polygons, addresses,
     type NewUser, type User, type NewSolarArray, type NewPolygon, type NewAddress,
@@ -32,57 +32,75 @@ export async function createUser(email: string, password: string) {
 }
 
 export async function getSolarArrays(userId: string) {
-    const solarArray = await db.select()
-        .from(solarArrays)
-        .innerJoin(polygons, eq(solarArrays.polygonId, polygons.id))
-        .innerJoin(addresses, eq(solarArrays.addressId, addresses.id))
-        .where(eq(solarArrays.userId, userId));
-
-    return solarArray;
+    try {
+        const solarArray = await db.select()
+            .from(solarArrays)
+            .innerJoin(polygons, eq(solarArrays.polygonId, polygons.id))
+            .innerJoin(addresses, eq(solarArrays.addressId, addresses.id))
+            .where(eq(solarArrays.userId, userId));
+        return { success: true, data: solarArray };
+    } catch (e) {
+        return { sucess: false, data: null }
+    }
 }
 
-export async function insertSolarArray(data: NewSolarArray) {
-    const result = await db.insert(solarArrays)
-        .values(data)
-        .returning({ id: solarArrays.id });
-    return result[0].id;
+export async function dbUpdate(userId: string, solarArray: NewSolarArray, polygon: NewPolygon) {
+    try {
+        return await db.transaction(async (tx) => {
+            const [polygonId] = await tx.update(solarArrays)
+                .set({ ...solarArray })
+                .where(and(eq(solarArrays.id, solarArray.id as string), eq(solarArrays.userId, userId)))
+                .returning({ polygonId: solarArrays.polygonId });
+
+            console.log(solarArray.id, userId);
+            console.log(polygonId);
+
+            await tx.update(polygons)
+                .set(polygon)
+                .where(eq(polygons.id, polygonId.polygonId as string))
+                .returning({ id: polygons.id });
+
+            return { success: true, message: "data updated successfully", error: "" };
+        });
+    } catch (e: any) {
+        return { success: false, message: "data failed to update", error: e.message };
+    }
 }
 
-export async function insertAddress(data: NewAddress) {
-    const result = await db.insert(addresses)
-        .values(data)
-        .returning({ id: addresses.id })
-        .onConflictDoNothing();
-    return result[0].id;
+export async function dbInsert(solarArray: NewSolarArray, polygon: NewPolygon, address: NewAddress) {
+    try {
+        await db.transaction((async (tx) => {
+            const [polygonId] = await tx.insert(polygons)
+                .values(polygon)
+                .returning({ id: polygons.id });
+
+            const [addressId] = await tx.insert(addresses)
+                .values(address)
+                .returning({ id: addresses.id })
+                .onConflictDoUpdate({
+                    target: addresses.name,
+                    set: { ...address }
+                });
+
+            console.log(addressId, polygonId);
+            await tx.insert(solarArrays)
+                .values({ ...solarArray, polygonId: polygonId.id, addressId: addressId.id })
+                .returning({ id: solarArrays.id });
+        }))
+        return { success: true, message: "data saved successfully", error: "" };
+    } catch (e: any) {
+        return { success: false, message: "data failed to save", error: e.message };
+    }
 }
 
-export async function insertPolygon(data: NewPolygon) {
-    const result = await db.insert(polygons)
-        .values(data)
-        .returning({ id: polygons.id });
-    return result[0].id;
-}
-
-export async function updateSolarArray(data: NewSolarArray) {
-    const result = await db.update(solarArrays)
-        .set(data)
-        .where(eq(solarArrays.id, data.id as string))
-        .returning({ id: solarArrays.id });
-    return result[0].id;
-}
-
-export async function updatePolygon(data: NewPolygon) {
-    const result = await db.update(polygons)
-        .set(data)
-        .where(eq(polygons.id, data.id as string))
-        .returning({ id: polygons.id });
-    return result[0].id;
-}
-
-export async function deleteSolarArray(id: string) {
-    const result = await db.delete(solarArrays)
-        .where(eq(solarArrays.id, id))
-        .returning({ id: solarArrays.id });
-    return result[0].id;
+export async function dbDelete(id: string, userId: string) {
+    try {
+        const result = await db.delete(solarArrays)
+            .where(and(eq(solarArrays.id, id), eq(solarArrays.userId, userId)))
+            .returning({ id: solarArrays.id });
+        return { success: true, data: "data deleted successfully", error: "" };
+    } catch (e: any) {
+        return { success: false, data: null, error: e.message }
+    }
 }
 

@@ -23,7 +23,7 @@ export type Suggestion = {
 export type Dataset = {
     x: string[];
     y: number[];
-    type: 'months' | 'hrs' | 'days';
+    type: 'months' | 'hrs' | 'days' | 'weekdays';
     name: string;
 }
 

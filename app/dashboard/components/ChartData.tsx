@@ -16,12 +16,12 @@ export default function ChartData({ dataset }: { dataset: Dataset[] }) {
     const xDomain: [number, number] = [0, dataset[0].x.length - 1];
     const yDomain: [number, number] = [minY, maxY];
 
-    const position = { x: 38, y: 0 } // origin position
+    const position = { x: 38, y: 10 } // origin position
     const margin = { x: 8, y: 40 };
     const boundedWidth = dms.width - position.x - margin.x;
     const boundedHeight = dms.height - position.y - margin.y;
     return (
-        <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] sm:w-3/4 h-[320px] mx-auto">
+        <div ref={ref as React.Ref<HTMLDivElement>} className="w-[90%] sm:w-3/4 h-[400px] mx-auto">
             <svg width={dms.width} height={dms.height}>
                 <g transform={`translate(${position.x},${position.y})`}>
                     <g transform={`translate(0,${boundedHeight})`}>

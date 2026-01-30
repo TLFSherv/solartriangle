@@ -1,6 +1,6 @@
 'use client'
 import { useState, useContext } from "react";
-import { formatDataChart } from "../lib/dataTools";
+import { formatChartData } from "../lib/dataTools";
 import ChartData from "./ChartData";
 import ChartMenu from "./ChartMenu";
 import { CalculatorContext } from '../context/CalculatorProvider';
@@ -12,7 +12,7 @@ export default function Chart({ data }:
     const [dataId, setDataId] = useState<number>(0);
     const [timeId, setTimeId] = useState<number[]>([0]);
     const calculatorData: CalculatorData = useContext(CalculatorContext);
-    const dataset = formatDataChart(data, calculatorData, dataId, timeId);
+    const dataset = formatChartData(data, calculatorData, dataId, timeId);
 
     return (
         <div className="w-full text-center">

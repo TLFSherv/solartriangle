@@ -18,7 +18,7 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
     const [ref, dms] = useChartDimensions({ width: 0, height: 0 });
 
     const position = { x: 0, y: 0 } // origin position
-    const margin = { x: 8, y: 40 };
+    const margin = { x: 8, y: 50 };
     const boundedWidth = dms.width - position.x - margin.x;
 
     const axisName = ['kWh/month', 'kWh/m2', '%']
@@ -39,7 +39,7 @@ export default function HeatMap({ data, dataId, dataRanges, gradientProps }:
                     </linearGradient>
                 </defs>
                 <g transform={`translate(${position.x},${position.y})`}>
-                    <rect x="10" y="10" width={boundedWidth - 10} height={80} fill={"url(#Gradient1)"} />
+                    <rect x="10" y="10" width={Math.abs(boundedWidth - 10)} height={80} fill={"url(#Gradient1)"} />
                     {data.map((d, i) => <g key={i}>
                         <circle
                             cx={xScale(d[dataId])}

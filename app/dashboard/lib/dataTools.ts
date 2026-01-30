@@ -4,7 +4,7 @@ import { Dataset } from "../../types/types";
 import { type CalculatorData } from "@/app/types/types";
 import * as d3 from "d3";
 
-export function formatDataChart(
+export function formatChartData(
     inputData: any[],
     calculatorData: CalculatorData,
     dataId: number,
@@ -76,7 +76,7 @@ export function formatDataChart(
             // if timeId.length > 1 then a day has been selected, return the data for that day 
             if (timeId.length > 1) return dailyData[timeId[1]];
 
-            let dailyDataTotals: Dataset = { x: [], y: [], type: "days", name: dataName };
+            let dailyDataTotals: Dataset = { x: [], y: [], type: "weekdays", name: dataName };
             let dailyTotal = 0;
 
             dailyData.forEach(({ x, y },) => {
@@ -116,8 +116,9 @@ export function formatDataChart(
             for (let i = 0; i < daysPerMonth[m]; ++i) {
                 dataDayTotal = monthlyData[m].slice(i * 24, (i + 1) * 24).reduce((a, b) => a + b);
                 dailyPoaByMonth.push((check2 || check3) ? Math.round(dataDayTotal) / 1000 : dataDayTotal);
-                dayOfMonth.push(`${months[m]} ${i + 1}`);
+                dayOfMonth.push(`${m + 1} ${i + 1}`);
             }
+
             return { x: dayOfMonth, y: dailyPoaByMonth, type: 'days', name: dataName };
         }
 
@@ -127,7 +128,7 @@ export function formatDataChart(
     return result;
 }
 
-export function formatDataMap(data: any[]) {
+export function formatMapData(data: any[]) {
     // get the number of days in each month of the year
     const daysPerMonth = new Array(12).fill(0).map((_, index) => new Date(2025, index + 1, 0).getDate())
     // get the ranges for ac_annual and solrad_annual

@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 type TimeAxis = {
     x: string[];
-    unit: "hrs" | "days" | "months";
+    unit: "hrs" | "days" | "months" | "weekdays";
     domain: [Date, Date] | [number, number];
     range: [number, number];
 }
@@ -17,19 +17,24 @@ export default function TimeAxis({ x, unit, domain, range }: TimeAxis) {
         const width = range[1] - range[0];
         const pixelsPerTick = 50;
         let numberOfTicksTarget = Math.max(1, Math.floor(width / pixelsPerTick));
-        numberOfTicksTarget = unit === 'days' ? Math.min(numberOfTicksTarget, 7) : numberOfTicksTarget;
+        numberOfTicksTarget = unit === 'weekdays' ? Math.min(numberOfTicksTarget, 7) : numberOfTicksTarget;
 
         const getLabelValues = (value: string) => {
+            console.log(value);
             const date = new Date(value);
             if (unit === 'hrs') {
                 const hh = date.getUTCHours();
                 return hh >= 10 ? `${hh}:00` : `0${hh}:00`
             }
-            else if (unit === 'days') {
+            else if (unit === 'weekdays') {
                 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                 const dd = date.getUTCDate();
                 const day = days[date.getUTCDay()];
                 return dd >= 10 ? `${day} ${dd}` : `${day} 0${dd}`;
+            } else if (unit === 'days') {
+                const dd = '0' + value.split(" ")[1];
+                const mm = '0' + value.split(" ")[0];
+                return `${mm.substring(mm.length - 2)}/${dd.substring(dd.length - 2)}`;
             }
             return value
         }

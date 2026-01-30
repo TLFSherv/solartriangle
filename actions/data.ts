@@ -2,12 +2,14 @@
 import { fetchWeatherApi } from "openmeteo";
 import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
-import z from 'zod';
+import { z } from 'zod';
 import { verifySession } from "@/app/lib/session";
-import { getSolarArrays, insertSolarArray, insertAddress, insertPolygon, updateSolarArray, updatePolygon, deleteSolarArray } from "@/app/lib/dal";
+import { insertPolygonSchema, insertAddressSchema, insertSolarArraySchema } from "../src/db/schema";
+import { getSolarArrays, dbUpdate, dbInsert, dbDelete } from "@/app/lib/dal";
 import { type CalculatorData, type FormInputs, type SolarArray, type SolarAPIParams } from "@/app/types/types";
 import { NewSolarArray, NewPolygon, NewAddress } from "../src/db/schema";
-import Azimuth from "@/app/learn/topics/azimuth/page";
+import { $ZodError } from "zod/v4/core";
+import { cache } from "react";
 
 type DatabaseData = { solarArrays: NewSolarArray; polygons: NewPolygon; addresses: NewAddress };
 
@@ -159,90 +161,61 @@ export async function cacheData(key: string, data: CalculatorData) {
     }
 }
 
-function formatData(data: DatabaseData[]): FormInputs {
-    const polygons: { id: number; polygon: google.maps.Polygon }[] = [];
+function formatData(data: DatabaseData[]): CalculatorData {
     const solarArrays: SolarArray[] = [];
     data.forEach(d => {
         const path = JSON.parse(d.polygons.coords);
         const { name: id, capacity, quantity } = d.solarArrays;
         const { area, azimuth } = d.polygons
-
-        polygons.push({
-            id: parseInt(id),
-            polygon: new google.maps.Polygon({
-                paths: path,
-                strokeColor: 1 === 1 ? "#F0662A" : "#1E1E1E",
-                fillColor: "#444444",
-                fillOpacity: 0.25,
-                draggable: true,
-                editable: true,
-            })
-        });
         solarArrays.push({
             id: parseInt(id),
             solarCapacity: capacity,
             numberOfPanels: quantity as number,
-            area: area as number,
-            azimuth: azimuth as number,
+            area: parseInt(area as string),
+            azimuth: parseInt(azimuth as string),
             shape: path
         })
     });
 
-    const {
-        name: address,
-        latitude: ltd,
-        longitude: lng
-    } = data[0].addresses;
-
-    return {
-        address,
-        location: new google.maps.LatLng(
-            parseInt(ltd),
-            parseInt(lng)),
-        polygons,
-        solarArrays
-    }
+    const { name: address, latitude: lat, longitude: lng } = data[0].addresses;
+    return { address, lat, lng, solarArrays }
 
 }
-export async function getCalculatorData(): Promise<{ isAuth: boolean; data: FormInputs | null }> {
+
+export async function getCalculatorData(): Promise<{ isAuth: boolean; data: CalculatorData | null }> {
     // check if user is logged in
     const session = await verifySession();
+
     if (session?.isAuth) {
         // send back users data if it exists
-        const data = await getSolarArrays(session.id);
-        if (data) return { isAuth: true, data: formatData(data) };
+        const { success, data } = await getSolarArrays(session.id);
+        return { isAuth: true, data: (data && data.length > 0) ? formatData(data) : null };
     }
 
-    // send back cached data it it exists
+    // send back cached data if it exists
     const exists = await cacheExists('calculatorData');
     if (!exists) return { isAuth: false, data: null }
 
-    const cacheResult = await getCachedData('calculatorData');
-    const data = cacheResult.data;
+    const data = (await getCachedData('calculatorData')).data;
     return {
         isAuth: false,
         data: {
             address: data.address,
-            location: new google.maps.LatLng(data.lat, data.lng),
-            polygons: data.solarArrays.map(({ shape, id }: SolarArray) => {
-                return {
-                    id,
-                    polygon: new google.maps.Polygon({
-                        paths: shape,
-                        strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
-                        fillColor: "#444444",
-                        fillOpacity: 0.25,
-                        draggable: true,
-                        editable: true,
-                    })
-                }
-            }),
+            lat: data.lat,
+            lng: data.lng,
             solarArrays: data.solarArrays
         }
     }
 }
 
-export async function saveToDatabase(newData: CalculatorData) {
+export const saveToDatabase = cache(async (address: string, lat: string, lng: string, solarArrays: SolarArray[]) => {
+    const newData: CalculatorData = {
+        address: address,
+        lat: lat,
+        lng: lng,
+        solarArrays: solarArrays
+    };
+    console.log('saving to database');
     try {
         // validate form data
         const validationResult = z.safeParse(calculatorSchema, newData);
@@ -256,29 +229,42 @@ export async function saveToDatabase(newData: CalculatorData) {
         if (!session?.isAuth) return { success: false, details: 'User is not logged in' };
         const userId = session.id;
 
-        // write to tables
-        const currentData = await getSolarArrays(userId);
+        // get data for user
+        const { success, data: currentData } = await getSolarArrays(userId);
+        if (!success) throw Error('Error getting data');
+
         const currentDataIds = currentData.map(data => data.solarArrays.name);
         const newDataIds: string[] = [];
 
+        // loop through all of the users solar arrays
         for (let i = 0; i < newData.solarArrays.length; i++) {
-            let { id, solarCapacity, numberOfPanels, area, azimuth, shape } =
-                newData.solarArrays[i];
+            let {
+                id,
+                solarCapacity,
+                numberOfPanels,
+                area,
+                azimuth,
+                shape
+            } = newData.solarArrays[i];
             newDataIds.push(id.toString());
+
+            const index = currentData.findIndex(d => d.solarArrays.name === id.toString());
+
             const solarArray: NewSolarArray = {
+                id: currentData[index]?.solarArrays.id,
                 name: id.toString(),
                 capacity: solarCapacity,
                 quantity: numberOfPanels,
                 userId: userId,
-                addressId: undefined,
-                polygonId: undefined,
+                addressId: currentData[index]?.addresses.id,
+                polygonId: currentData[index]?.polygons.id,
                 lastModified: new Date(),
-                dateCreated: undefined
+                dateCreated: currentData[index]?.solarArrays.dateCreated || undefined
             }
             const polygon: NewPolygon = {
                 coords: JSON.stringify(shape),
-                area: area,
-                azimuth: azimuth,
+                area: area.toString(),
+                azimuth: azimuth.toString(),
                 numberOfPoints: shape.length
             }
             const address: NewAddress = {
@@ -286,39 +272,44 @@ export async function saveToDatabase(newData: CalculatorData) {
                 latitude: newData.lat,
                 longitude: newData.lng
             }
+
+            const polygonValidation = z.safeParse(insertPolygonSchema, polygon);
+            const solarArrayValidation = z.safeParse(insertSolarArraySchema, solarArray);
+            if (!polygonValidation.success || !solarArrayValidation.success)
+                return {
+                    success: false,
+                    message: 'validation failed',
+                    error: !polygonValidation.success ?
+                        z.flattenError(polygonValidation.error).fieldErrors :
+                        z.flattenError(solarArrayValidation.error as $ZodError).fieldErrors
+                }
+
+            // update/insert data
+            const { success, error } = (currentDataIds.includes(newDataIds[i])) ?
+                await dbUpdate(userId, solarArray, polygon) :
+                await dbInsert(solarArray, polygon, address);
+
             if (currentDataIds.includes(newDataIds[i])) {
-                // update polygon
-                const polygonId = await updatePolygon(polygon);
-                // update solar array
-                solarArray.polygonId = polygonId;
-                solarArray.addressId = currentData[i].addresses.id;
-                updateSolarArray(solarArray);
+                console.log('update', success, error)
+            } else {
+                console.log('insert', success, error)
             }
-            else {
-                //create polygon
-                const polygonId = await insertPolygon(polygon);
-                //create address
-                const addressId = await insertAddress(address);
-                // create solar array
-                solarArray.polygonId = polygonId;
-                solarArray.addressId = addressId;
-                solarArray.dateCreated = new Date();
-                insertSolarArray(solarArray)
-            }
+            if (!success) throw Error(error);
         }
 
+        // delete old data
         for (let i = 0; i < currentData.length; ++i) {
             const { name, id } = currentData[i].solarArrays;
             if (!newDataIds.includes(name)) {
-                // delete solar array
-                const result = await deleteSolarArray(id);
+                const { success } = await dbDelete(id, userId);
+                if (!success) throw Error('Error with delete');
             }
         }
-        return { success: true, details: 'solar array saved successfully' };
+        return { success: true, message: 'data saved successfully', error: '' };
     } catch (e: any) {
-        return { success: false, details: e.message };
+        return { success: false, message: 'data failed to save', error: e.message };
     }
-}
+})
 
 
 
