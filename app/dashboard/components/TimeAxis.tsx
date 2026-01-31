@@ -20,7 +20,6 @@ export default function TimeAxis({ x, unit, domain, range }: TimeAxis) {
         numberOfTicksTarget = unit === 'weekdays' ? Math.min(numberOfTicksTarget, 7) : numberOfTicksTarget;
 
         const getLabelValues = (value: string) => {
-            console.log(value);
             const date = new Date(value);
             if (unit === 'hrs') {
                 const hh = date.getUTCHours();

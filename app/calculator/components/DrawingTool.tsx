@@ -5,7 +5,7 @@ import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints } from '../lib/geometryTool'
 import { FormInputs } from "@/app/types/types";
-import { cacheExists } from "@/actions/data";
+import { getCalculatorData } from "@/actions/data";
 
 export default function DrawingTool(props: {
     inputs: FormInputs,
@@ -17,7 +17,7 @@ export default function DrawingTool(props: {
     const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(props.inputs.polygons);
     const polygonsRef = useRef<{ id: number; polygon: google.maps.Polygon }[] | null>(polygons);
     const polygonIdRef = useRef(1);
-    const populatedMap = useRef(false);
+    const mapInitialised = useRef(false);
     const { setInputs } = props;
 
     useEffect(() => {
@@ -33,14 +33,14 @@ export default function DrawingTool(props: {
         })
     }, [props.activeId])
 
-    // populate map with solar panels if user returns to calculator
+    // init polygons on map load
     useEffect(() => {
-        const populateMap = async () => {
-            const exists = await cacheExists('calculatorData');
-            if (!exists || !map ||
+        const initMap = async () => {
+            const { data } = await getCalculatorData();
+            if (!data || !map ||
                 !props.inputs.polygons.length) return
 
-            // add event listeners back
+            // add event listeners to polygons
             props.inputs.polygons.forEach(({ id, polygon: poly }) => {
                 poly.addListener("click", () => props.setActiveId(id));
 
@@ -51,11 +51,11 @@ export default function DrawingTool(props: {
 
                 poly.setMap(map);
             })
-            populatedMap.current = true;
+            mapInitialised.current = true;
             setPolygons(props.inputs.polygons);
         }
         // only call once
-        if (!populatedMap.current) populateMap();
+        if (!mapInitialised.current) initMap();
     }, [props.inputs.polygons.join('-')])
 
     const addPolygon = () => {

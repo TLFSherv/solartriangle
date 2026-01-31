@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { getPolygonArea, getPolygonAzimuth } from "../lib/geometryTool";
 import { FormInputs } from "@/app/types/types"
+import { number } from "zod";
 
 
 export default function SolarArrayForm(props: {
@@ -12,15 +13,17 @@ export default function SolarArrayForm(props: {
 }) {
     const { polygons, solarArrays } = props.inputs;
     const { activeId, setActiveId } = props;
+
     let isEmpty = polygons.length === 0 && solarArrays.length === 0;
+    let activeIndex = 0;
+    if (!isEmpty) activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
 
     useEffect(() => {
-        const poly = polygons[activeIndex]?.polygon;
+        const activePolygon = polygons[activeIndex]?.polygon;
+        if (isEmpty || !activePolygon) return;
 
-        if (isEmpty || !poly) return;
-
-        const polygonPath = poly.getPath().getArray();
-        const shape = polygonPath.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        const path = activePolygon.getPath().getArray();
+        const shape = path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
 
         // check if polygon has changed
         const oldShape = solarArrays[activeIndex].shape;
@@ -28,10 +31,10 @@ export default function SolarArrayForm(props: {
             shape.every((elem, i) => elem.lat === oldShape[i].lat && elem.lng === oldShape[i].lng);
 
         if (isUnchanged) return;
-
+        // debounce updating area and azimuth
         const timeoutId = setTimeout(() => {
-            const area = Number(getPolygonArea(poly).toFixed(2));
-            const azimuth = Number(getPolygonAzimuth(poly).toFixed(2));
+            const area = Number(getPolygonArea(activePolygon).toFixed(2));
+            const azimuth = Number(getPolygonAzimuth(activePolygon).toFixed(2));
 
             if (area === solarArrays[activeIndex].area &&
                 azimuth === solarArrays[activeIndex].azimuth) return;
@@ -74,7 +77,8 @@ export default function SolarArrayForm(props: {
                     numberOfPanels: 1,
                     area: 0,
                     azimuth: 0,
-                    shape: []
+                    shape: [],
+                    areaToPanels: false,
                 }
             )
         });
@@ -88,20 +92,25 @@ export default function SolarArrayForm(props: {
         let value = e.target.value;
 
         if (name === 'areaToPanels' && e.target.checked) {
-            name = 'numberOfPanels';
-            // area of a panel is 1.8m2 and add 30% buffer
-            let approxNumberofPanels = (solarArrays[activeIndex].area || 0) / 2.34;
-            value = String(approxNumberofPanels.toFixed(0));
+            // area of a panel is 1.8m2 also include 30% buffer
+            let panelCountEstimate = (solarArrays[activeIndex].area || 0) / 2.34;
+            const updatedSolarArrays = {
+                ...solarArrays[activeIndex],
+                numberOfPanels: Math.round(panelCountEstimate),
+                areaToPanels: e.target.checked
+            }
+            props.setInputs(prev => ({
+                ...prev,
+                solarArrays: prev.solarArrays.map((item, i) => i === activeIndex ? updatedSolarArrays : item)
+            }));
+            return;
         }
-
         props.setInputs(prev => ({
             ...prev,
             solarArrays: solarArrays.map((item, i) =>
                 (i === activeIndex ? { ...item, [name]: value === '' ? '' : Number(value) } : item))
         }));
     }
-
-    const activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
 
     return (
         <div className="flex justify-evenly border-2 border-[#787572] rounded-xl p-6 gap-8 max-w-3xl mx-auto">
@@ -173,7 +182,12 @@ export default function SolarArrayForm(props: {
                         disabled={isEmpty} />
                 </div>
                 <div className="col-span-2 space-x-1 mt">
-                    <input className="accent-black" type="checkbox" name="areaToPanels" onChange={handleChange} />
+                    <input
+                        className="accent-black"
+                        type="checkbox"
+                        name="areaToPanels"
+                        onChange={handleChange}
+                        checked={solarArrays[activeIndex]?.areaToPanels} />
                     <label>Use area to estimate number of panels</label>
                 </div>
             </div>

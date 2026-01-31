@@ -11,6 +11,7 @@ export type SolarArray = {
     area: number;
     azimuth: number;
     shape: { lat: number; lng: number; }[];
+    areaToPanels: boolean;
 }
 
 export type Suggestion = {

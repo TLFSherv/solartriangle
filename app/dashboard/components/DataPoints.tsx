@@ -1,6 +1,7 @@
 import { useState } from "react";
 import * as d3 from "d3";
 import { colors } from '../lib/dataTools'
+import { Dataset } from "@/app/types/types";
 
 type DataPoints =
     {
@@ -10,11 +11,7 @@ type DataPoints =
         domain: { x: [Date, Date] | [number, number]; y: [number, number] };
         range: { x: [number, number]; y: [number, number] };
     }
-type Dataset = {
-    x: string[];
-    y: number[];
-    type: 'months' | 'hrs' | 'days';
-}
+
 export default function DataPoints({ dataset, id, settings, domain, range }: DataPoints) {
     const [selectedPoint, setSelectedPoint] = useState('');
 

@@ -4,9 +4,9 @@ import redis from 'redis'
 import { redirect, RedirectType } from 'next/navigation'
 import { z } from 'zod';
 import { verifySession } from "@/app/lib/session";
-import { insertPolygonSchema, insertAddressSchema, insertSolarArraySchema } from "../src/db/schema";
+import { insertPolygonSchema, insertSolarArraySchema } from "../src/db/schema";
 import { getSolarArrays, dbUpdate, dbInsert, dbDelete } from "@/app/lib/dal";
-import { type CalculatorData, type FormInputs, type SolarArray, type SolarAPIParams } from "@/app/types/types";
+import { type CalculatorData, type SolarArray, type SolarAPIParams } from "@/app/types/types";
 import { NewSolarArray, NewPolygon, NewAddress } from "../src/db/schema";
 import { $ZodError } from "zod/v4/core";
 import { cache } from "react";
@@ -173,7 +173,8 @@ function formatData(data: DatabaseData[]): CalculatorData {
             numberOfPanels: quantity as number,
             area: parseInt(area as string),
             azimuth: parseInt(azimuth as string),
-            shape: path
+            shape: path,
+            areaToPanels: false
         })
     });
 
@@ -183,28 +184,32 @@ function formatData(data: DatabaseData[]): CalculatorData {
 }
 
 export async function getCalculatorData(): Promise<{ isAuth: boolean; data: CalculatorData | null }> {
-    // check if user is logged in
-    const session = await verifySession();
+    try {
+        // check if user is logged in
+        const session = await verifySession();
 
-    if (session?.isAuth) {
-        // send back users data if it exists
-        const { success, data } = await getSolarArrays(session.id);
-        return { isAuth: true, data: (data && data.length > 0) ? formatData(data) : null };
-    }
-
-    // send back cached data if it exists
-    const exists = await cacheExists('calculatorData');
-    if (!exists) return { isAuth: false, data: null }
-
-    const data = (await getCachedData('calculatorData')).data;
-    return {
-        isAuth: false,
-        data: {
-            address: data.address,
-            lat: data.lat,
-            lng: data.lng,
-            solarArrays: data.solarArrays
+        // if user is logged in check if they have data in the database
+        if (session?.isAuth) {
+            const { success, data } = await getSolarArrays(session.id);
+            return { isAuth: true, data: (data && data.length > 0) ? formatData(data) : null };
         }
+
+        // if user is not logged in check cache for data
+        const exists = await cacheExists('calculatorData');
+        if (!exists) return { isAuth: false, data: null }
+
+        const data = (await getCachedData('calculatorData')).data;
+        return {
+            isAuth: false,
+            data: {
+                address: data.address,
+                lat: data.lat,
+                lng: data.lng,
+                solarArrays: data.solarArrays
+            }
+        }
+    } catch (e) {
+        return { isAuth: false, data: null }
     }
 }
 
@@ -215,7 +220,7 @@ export const saveToDatabase = cache(async (address: string, lat: string, lng: st
         lng: lng,
         solarArrays: solarArrays
     };
-    console.log('saving to database');
+
     try {
         // validate form data
         const validationResult = z.safeParse(calculatorSchema, newData);
@@ -289,11 +294,6 @@ export const saveToDatabase = cache(async (address: string, lat: string, lng: st
                 await dbUpdate(userId, solarArray, polygon) :
                 await dbInsert(solarArray, polygon, address);
 
-            if (currentDataIds.includes(newDataIds[i])) {
-                console.log('update', success, error)
-            } else {
-                console.log('insert', success, error)
-            }
             if (!success) throw Error(error);
         }
 

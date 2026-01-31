@@ -13,7 +13,7 @@ export default function Calculator() {
         address: '',
         location: null,
         polygons: [],
-        solarArrays: []
+        solarArrays: [],
     };
     enum FormStatus { Success, Error, Pending };
     const [inputs, setInputs] = useState<FormInputs>(initInputs);
@@ -21,6 +21,7 @@ export default function Calculator() {
     const [activeId, setActiveId] = useState(1);
     const [isAuth, setIsAuth] = useState(false);
     const router = useRouter();
+
     useEffect(() => {
         // check cache or database for data and populate the form
         const initForm = async () => {
@@ -28,7 +29,7 @@ export default function Calculator() {
             setIsAuth(isAuth);
             if (!data) return
 
-            let inputs: FormInputs = {
+            const inputs: FormInputs = {
                 address: data.address,
                 location: new google.maps.LatLng(parseFloat(data.lat), parseFloat(data.lng)),
                 polygons: data.solarArrays.map(({ shape, id }) => {
@@ -44,12 +45,19 @@ export default function Calculator() {
                         })
                     }
                 }),
-                solarArrays: data.solarArrays
+                solarArrays: data.solarArrays,
             }
             setInputs(inputs);
         }
         initForm();
     }, []);
+
+    useEffect(() => {
+        // reset status on input change
+        if (status?.value !== FormStatus.Pending) {
+            setStatus(undefined);
+        }
+    }, [inputs]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.name;
@@ -89,7 +97,6 @@ export default function Calculator() {
             value: result.success ? FormStatus.Success : FormStatus.Error,
             details: result.details
         });
-        console.log(result);
     }
 
     return (
@@ -131,8 +138,8 @@ export default function Calculator() {
                     type="button"
                     className="py-3 px-6 border-2 rounded-2xl border-[#F0662A] cursor-pointer tracking-wider w-xs"
                     onClick={handleSave}
-                    disabled={status?.value === FormStatus.Pending}>
-                    Save changes
+                    disabled={status?.value === FormStatus.Pending || status?.value === FormStatus.Success}>
+                    {status?.value === FormStatus.Success ? "Changes saved!" : "Save changes"}
                 </button>}
                 <button
                     type="submit"
