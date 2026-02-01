@@ -85,7 +85,7 @@ export async function fetchData(cacheData: CalculatorData) {
             const data = {
                 lat: cacheData.lat,
                 lng: cacheData.lng,
-                capacity: solarArray.solarCapacity / 1000 * solarArray.numberOfPanels,
+                capacity: (solarArray.solarCapacity * solarArray.numberOfPanels) / 1000, // kW
                 quantity: solarArray.numberOfPanels,
                 azimuth: solarArray.azimuth,
                 tilt: 30

@@ -37,13 +37,13 @@ export default function DrawingTool(props: {
     useEffect(() => {
         const initMap = async () => {
             const { data } = await getCalculatorData();
+
             if (!data || !map ||
                 !props.inputs.polygons.length) return
 
             // add event listeners to polygons
             props.inputs.polygons.forEach(({ id, polygon: poly }) => {
                 poly.addListener("click", () => props.setActiveId(id));
-
                 // update polygon if vertices change
                 poly.getPath().addListener("set_at", () => {
                     setInputs((prev) => ({ ...prev, polygons: props.inputs.polygons || [] }))
@@ -68,7 +68,8 @@ export default function DrawingTool(props: {
 
         const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
         const path = createRectanglePoints(center, length, length);
-        const id = ((props.inputs.polygons.at(-1)?.id || -1) + 1) || polygonIdRef.current;
+        const lastId = polygons?.reduce((largest, current) => (current.id > largest.id ? current : largest)).id || 0;
+        const id = lastId + 1;
 
         const poly = new google.maps.Polygon({
             paths: path,

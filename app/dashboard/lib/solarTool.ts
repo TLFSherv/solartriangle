@@ -8,10 +8,10 @@ export function getCellTemps(poa: number[], ws: number[], aT: number[]) {
     return poa.map((E, i) => E * Math.pow(Math.E, a + b * ws[i]) + aT[i] + (E / 1000) * dT);
 }
 
-export function getPowerOutputs(area: number, poa: number[], cT: number[]) {
-    // standard efficiency and temp coefficient of power
-    const stdEff = 0.2, lmd = -0.0040;
-    return poa.map((E, i) => E * area * stdEff * (1 + lmd * Math.max(cT[i] - 25, 0)));
+export function getPowerOutputs(capacity: number, poa: number[], cT: number[]) {
+    // temp coefficient of power, performance ratio not including temp
+    const lmd = -0.0040, PR = 0.85;
+    return poa.map((E, i) => E * capacity * PR * (1 + lmd * Math.max(cT[i] - 25, 0)));
 }
 
 export function getEnergyLosses(area: number, poa: number[], cT: number[]) {

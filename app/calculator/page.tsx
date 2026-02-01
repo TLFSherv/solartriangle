@@ -31,7 +31,7 @@ export default function Calculator() {
 
             const inputs: FormInputs = {
                 address: data.address,
-                location: new google.maps.LatLng(parseFloat(data.lat), parseFloat(data.lng)),
+                location: { lat: parseFloat(data.lat), lng: parseFloat(data.lng) },
                 polygons: data.solarArrays.map(({ shape, id }) => {
                     return {
                         id,
@@ -70,8 +70,8 @@ export default function Calculator() {
         setStatus({ value: FormStatus.Pending, details: 'Form submission started' });
         const formData = {
             address: inputs.address,
-            lat: String(inputs.location?.lat() || ""),
-            lng: String(inputs.location?.lng() || ""),
+            lat: String(inputs.location?.lat || ""),
+            lng: String(inputs.location?.lng || ""),
             solarArrays: inputs.solarArrays
         };
         const cacheResult = await cacheData("calculatorData", formData)
@@ -89,8 +89,8 @@ export default function Calculator() {
     }
 
     const handleSave = async () => {
-        const lat = inputs.location?.lat().toString() || "";
-        const lng = inputs.location?.lng().toString() || "";
+        const lat = inputs.location?.lat.toString() || "";
+        const lng = inputs.location?.lng.toString() || "";
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
         const result = await saveToDatabase(inputs.address, lat, lng, inputs.solarArrays);
         setStatus({

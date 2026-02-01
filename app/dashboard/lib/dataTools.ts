@@ -33,8 +33,9 @@ export function formatChartData(
         } = d.pvwatts.outputs;
 
         const area = calculatorData.solarArrays[i].area;
+        const capacity = (calculatorData.solarArrays[i].solarCapacity * calculatorData.solarArrays[i].numberOfPanels) / 1000;
         const cellTemps = getCellTemps(gti_week, windSpeed_week, temp_week)
-        const power_week = getPowerOutputs(area, gti_week, cellTemps);
+        const power_week = getPowerOutputs(capacity, gti_week, cellTemps);
 
         const losses_week = getEnergyLosses(area, gti_week, cellTemps);
         const losses_year = getEnergyLosses(area, poa_year, cellTemp_year);

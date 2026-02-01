@@ -2,8 +2,6 @@
 import React, { useEffect } from "react";
 import { getPolygonArea, getPolygonAzimuth } from "../lib/geometryTool";
 import { FormInputs } from "@/app/types/types"
-import { number } from "zod";
-
 
 export default function SolarArrayForm(props: {
     inputs: FormInputs,
@@ -57,7 +55,6 @@ export default function SolarArrayForm(props: {
     // create solar array objects for the polygons drawn on the map
     useEffect(() => {
         if (isEmpty) return;
-
         const polygonIds = polygons.map(p => p.id);
 
         // if no solar array is selected select one
@@ -187,7 +184,7 @@ export default function SolarArrayForm(props: {
                         type="checkbox"
                         name="areaToPanels"
                         onChange={handleChange}
-                        checked={solarArrays[activeIndex]?.areaToPanels} />
+                        checked={solarArrays[activeIndex]?.areaToPanels || false} />
                     <label>Use area to estimate number of panels</label>
                 </div>
             </div>
