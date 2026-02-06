@@ -6,7 +6,6 @@ import { colors } from '../lib/dataTools'
 import { type SolarArray, type CalculatorData } from '@/app/types/types'
 import { CalculatorContext } from '../context/CalculatorProvider';
 
-
 export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
     const calculatorData: CalculatorData = useContext(CalculatorContext);
     return (

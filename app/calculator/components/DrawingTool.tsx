@@ -5,7 +5,7 @@ import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints } from '../lib/geometryTool'
 import { FormInputs } from "@/app/types/types";
-import { getCalculatorData } from "@/actions/data";
+import { getInputsFromCache } from "@/actions/data";
 
 export default function DrawingTool(props: {
     inputs: FormInputs,
@@ -36,7 +36,7 @@ export default function DrawingTool(props: {
     // init polygons on map load
     useEffect(() => {
         const initMap = async () => {
-            const { data } = await getCalculatorData();
+            const { data } = await getInputsFromCache();
 
             if (!data || !map ||
                 !props.inputs.polygons.length) return
@@ -68,7 +68,9 @@ export default function DrawingTool(props: {
 
         const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
         const path = createRectanglePoints(center, length, length);
-        const lastId = polygons?.reduce((largest, current) => (current.id > largest.id ? current : largest)).id || 0;
+        let lastId = 0;
+        if (polygons && polygons.length > 0)
+            lastId = polygons.reduce((largest, current) => (current.id > largest.id ? current : largest)).id;
         const id = lastId + 1;
 
         const poly = new google.maps.Polygon({

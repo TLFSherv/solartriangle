@@ -1,7 +1,7 @@
-import { getCachedData } from "@/actions/data"
+import { getInputsFromCache } from "@/actions/data"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-    let { data, success, error } = await getCachedData('calculatorData');
+    let { data, success, error } = await getInputsFromCache();
     return (
         <div className="space-y-8">
             <h1 className="text-center pt-10 font-[Space_Grotesk] text-4xl font-light text-[#6E6E6E] tracking-wide">

@@ -25,7 +25,7 @@ export default function SuggestionsDropdown(props:
         setInputs({
             ...inputs,
             ['address']: text,
-            ['location']: new google.maps.LatLng(data.location.latitude, data.location.longitude)
+            ['location']: { lat: data.location.latitude, lng: data.location.longitude }
         });
     }
 

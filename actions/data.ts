@@ -1,15 +1,16 @@
 'use server'
 import { fetchWeatherApi } from "openmeteo";
-import redis from 'redis'
+import { myRedisClient } from "@/app/lib/redis";
 import { redirect, RedirectType } from 'next/navigation'
+import { headers } from "next/headers";
 import { z } from 'zod';
+import { $ZodError } from "zod/v4/core";
 import { verifySession } from "@/app/lib/session";
-import { insertPolygonSchema, insertSolarArraySchema } from "../src/db/schema";
+import { insertPolygonSchema, insertSolarArraySchema, NewSolarArray, NewPolygon, NewAddress } from "../src/db/schema";
 import { getSolarArrays, dbUpdate, dbInsert, dbDelete } from "@/app/lib/dal";
 import { type CalculatorData, type SolarArray, type SolarAPIParams } from "@/app/types/types";
-import { NewSolarArray, NewPolygon, NewAddress } from "../src/db/schema";
-import { $ZodError } from "zod/v4/core";
-import { cache } from "react";
+import { rateLimiter } from '@/app/lib/rate-limiter'
+import { RateLimiterRes } from "rate-limiter-flexible";
 
 type DatabaseData = { solarArrays: NewSolarArray; polygons: NewPolygon; addresses: NewAddress };
 
@@ -30,7 +31,7 @@ const calculatorSchema = z.object({
 const revalidate = 600
 
 // cache server function but revalidate data based on time
-export async function fetchData(cacheData: CalculatorData) {
+export async function fetchDashboardData(inputData: CalculatorData) {
     const fetchPVWattsData = async (param: SolarAPIParams) => {
         const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
         const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${param.azimuth}&system_capacity=${param.capacity}&module_type=0&losses=14&array_type=1&tilt=${param.tilt}&lat=${param.lat}&lon=${param.lng}&timeframe=hourly`;
@@ -80,18 +81,24 @@ export async function fetchData(cacheData: CalculatorData) {
     }
 
     try {
+        const identifier = await getIdentifier() as string;
+        // check rate limiter before doing work
+        await rateLimiter.consume(identifier); //throws rate limit error if exceeded
+
+        // rate limit passed
         let result: any[] = []
-        for (const solarArray of cacheData.solarArrays) {
-            const data = {
-                lat: cacheData.lat,
-                lng: cacheData.lng,
+
+        for (const solarArray of inputData.solarArrays) {
+            const inputs = {
+                lat: inputData.lat,
+                lng: inputData.lng,
                 capacity: (solarArray.solarCapacity * solarArray.numberOfPanels) / 1000, // kW
                 quantity: solarArray.numberOfPanels,
                 azimuth: solarArray.azimuth,
                 tilt: 30
             };
-            const pvwatts = await fetchPVWattsData(data);
-            const openmeteo = await fetchOpenMetoData(data);
+            const pvwatts = await fetchPVWattsData(inputs);
+            const openmeteo = await fetchOpenMetoData(inputs);
             result.push({ pvwatts, openmeteo })
         }
         return {
@@ -101,18 +108,31 @@ export async function fetchData(cacheData: CalculatorData) {
         };
 
     } catch (e: any) {
+        if (e instanceof RateLimiterRes) {
+            // Rate limit exceeded
+            const retryAfter = Math.ceil(e.msBeforeNext / 1000);
+            return {
+                error: `Too many requests`,
+                retryAfter,
+                remainingPoints: e.remainingPoints
+            }
+        }
+        console.log(e.message);
         // redirect to calculator page
         redirect('/calculator', RedirectType.replace)
     }
 }
-// fetch form data from redis
-export async function getCachedData(key: string) {
-    try {
-        const redisClient = redis.createClient()
-        redisClient.connect();
-        const data = await redisClient.get(key);
 
-        if (!data) throw Error(`Could not find value for the key ${key}`);
+// Get form input data from Redis
+export async function getInputsFromCache() {
+    try {
+        if (!myRedisClient) throw Error('Error connecting to redis client');
+
+        const identifier = await getIdentifier();
+        const inputKey = `user-input:${identifier}`;
+        const data = await myRedisClient.get(inputKey);
+
+        if (!data) throw Error(`Could not find value`);
 
         return {
             success: true,
@@ -121,24 +141,46 @@ export async function getCachedData(key: string) {
         };
     } catch (e: any) {
         // redirect to calculator page
+        console.log(e.message);
         redirect('/calculator', RedirectType.replace)
     }
 }
 
-export async function cacheExists(key: string) {
+// Check if there's data in Redis
+export async function cacheExists(key?: string) {
     try {
-        const redisClient = redis.createClient()
-        redisClient.connect();
-        const result = await redisClient.exists(key);
-        return result;
+        if (!myRedisClient) throw Error('Error connecting to redis client');
 
+        const identifier = await getIdentifier();
+        const inputKey = key ?? `user-input:${identifier}`;
+        return await myRedisClient.exists(inputKey);
     } catch (e) {
         console.error(e);
     }
 }
 
-// store form input data from calculator page in redis
-export async function cacheData(key: string, data: CalculatorData) {
+//Get key for the value stored in Redis
+async function getIdentifier() {
+    try {
+        const headerList = headers();
+        let identifier: string;
+        const session = await verifySession();
+        // check if user is logged in
+        if (session?.isAuth) {
+            identifier = `user:${session.id}`;
+        } else {
+            const forwarded = (await headerList).get('x-forwarded-for') ?? '127.0.0.1';
+            const ip = forwarded.split(',')[0].trim();
+            identifier = `ip:${ip}`;
+        }
+        return identifier;
+    } catch (e: any) {
+        console.log(e.message);
+    }
+}
+
+// Store input data from calculator page in Redis
+export async function storeInputsInCache(data: CalculatorData) {
     try {
         const validationResult = z.safeParse(calculatorSchema, data);
         if (!validationResult.success)
@@ -146,11 +188,15 @@ export async function cacheData(key: string, data: CalculatorData) {
                 success: false,
                 details: z.flattenError(validationResult.error)
             }
-        const redisClient = redis.createClient();
-        redisClient.connect();
-        const result = await redisClient.setEx(key, 1800, JSON.stringify(data));
+
+        if (!myRedisClient) throw Error('Error connecting to redis client');
+
+        const identifier = await getIdentifier();
+        const inputKey = `user-input:${identifier}`;
+        const result = await myRedisClient.setEx(inputKey, 1800, JSON.stringify(data));
+
         if (result !== 'OK')
-            throw Error(`Could not set value for key the ${key}, function returned: ${result}`);
+            throw Error(`Could not set value`);
 
         return {
             success: true,
@@ -161,7 +207,8 @@ export async function cacheData(key: string, data: CalculatorData) {
     }
 }
 
-function formatData(data: DatabaseData[]): CalculatorData {
+// Format data from database to be displayed on calculator page
+function formatInputs(data: DatabaseData[]): CalculatorData {
     const solarArrays: SolarArray[] = [];
     data.forEach(d => {
         const path = JSON.parse(d.polygons.coords);
@@ -180,10 +227,10 @@ function formatData(data: DatabaseData[]): CalculatorData {
 
     const { name: address, latitude: lat, longitude: lng } = data[0].addresses;
     return { address, lat, lng, solarArrays }
-
 }
 
-export async function getCalculatorData(): Promise<{ isAuth: boolean; data: CalculatorData | null }> {
+// Get input data from database if user has an account
+export async function readInputsFromDb(): Promise<{ isAuth: boolean; data: CalculatorData | null }> {
     try {
         // check if user is logged in
         const session = await verifySession();
@@ -191,14 +238,14 @@ export async function getCalculatorData(): Promise<{ isAuth: boolean; data: Calc
         // if user is logged in check if they have data in the database
         if (session?.isAuth) {
             const { success, data } = await getSolarArrays(session.id);
-            return { isAuth: true, data: (data && data.length > 0) ? formatData(data) : null };
+            return { isAuth: true, data: (data && data.length > 0) ? formatInputs(data) : null };
         }
 
         // if user is not logged in check cache for data
-        const exists = await cacheExists('calculatorData');
+        const exists = await cacheExists();
         if (!exists) return { isAuth: false, data: null }
 
-        const data = (await getCachedData('calculatorData')).data;
+        const data = (await getInputsFromCache()).data;
         return {
             isAuth: false,
             data: {
@@ -213,7 +260,8 @@ export async function getCalculatorData(): Promise<{ isAuth: boolean; data: Calc
     }
 }
 
-export const saveToDatabase = cache(async (address: string, lat: string, lng: string, solarArrays: SolarArray[]) => {
+// Store/update input data in database if user has an account
+export async function storeInputsInDb(address: string, lat: string, lng: string, solarArrays: SolarArray[]) {
     const newData: CalculatorData = {
         address: address,
         lat: lat,
@@ -309,7 +357,7 @@ export const saveToDatabase = cache(async (address: string, lat: string, lng: st
     } catch (e: any) {
         return { success: false, message: 'data failed to save', error: e.message };
     }
-})
+}
 
 
 

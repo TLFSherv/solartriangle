@@ -5,8 +5,8 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
+import { storeInputsInCache, readInputsFromDb, storeInputsInDb } from "@/actions/data";
 import { type FormInputs } from "@/app/types/types";
-import { cacheData, getCalculatorData, saveToDatabase } from "@/actions/data";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -25,7 +25,7 @@ export default function Calculator() {
     useEffect(() => {
         // check cache or database for data and populate the form
         const initForm = async () => {
-            const { isAuth, data } = await getCalculatorData();
+            const { isAuth, data } = await readInputsFromDb();
             setIsAuth(isAuth);
             if (!data) return
 
@@ -74,7 +74,7 @@ export default function Calculator() {
             lng: String(inputs.location?.lng || ""),
             solarArrays: inputs.solarArrays
         };
-        const cacheResult = await cacheData("calculatorData", formData)
+        const cacheResult = await storeInputsInCache(formData)
 
         if (cacheResult.success) {
             // navigate to dashboard
@@ -92,7 +92,7 @@ export default function Calculator() {
         const lat = inputs.location?.lat.toString() || "";
         const lng = inputs.location?.lng.toString() || "";
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
-        const result = await saveToDatabase(inputs.address, lat, lng, inputs.solarArrays);
+        const result = await storeInputsInDb(inputs.address, lat, lng, inputs.solarArrays);
         setStatus({
             value: result.success ? FormStatus.Success : FormStatus.Error,
             details: result.details

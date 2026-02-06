@@ -17,7 +17,6 @@ export const verifySession = async () => {
     if (!session || !payload) {
         return null
     }
-    console.log(payload)
     return { isAuth: true, ...payload }
 }
 
