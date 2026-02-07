@@ -5,7 +5,7 @@ export default function Learn() {
     return (
         <div className="m-6 mt-18 space-y-16">
             <div className="space-y-8 font-[Space_Grotesk] text-center mx-8">
-                <h1 className="text-5xl md:text-6xl tracking-wide bg-linear-[60deg,#E420B3,#FF2D55,#F0662A,#F2C521] bg-clip-text text-transparent">
+                <h1 className="text-5xl md:text-6xl tracking-wide text-[#F0662A]">
                     Learn
                 </h1>
                 <p className="font-light text-lg/7">
