@@ -12,7 +12,6 @@ export default function Calculator() {
     const initInputs: FormInputs = {
         address: '',
         location: null,
-        polygons: [],
         solarArrays: [],
     };
     enum FormStatus { Success, Error, Pending };
@@ -21,33 +20,19 @@ export default function Calculator() {
     const [activeId, setActiveId] = useState(1);
     const [isAuth, setIsAuth] = useState(false);
     const router = useRouter();
-
     useEffect(() => {
         // check cache or database for data and populate the form
         const initForm = async () => {
             const { isAuth, data } = await readInputsFromDb();
+
             setIsAuth(isAuth);
             if (!data) return
-
-            const inputs: FormInputs = {
+            const storedInputs: FormInputs = {
                 address: data.address,
                 location: { lat: parseFloat(data.lat), lng: parseFloat(data.lng) },
-                polygons: data.solarArrays.map(({ shape, id }) => {
-                    return {
-                        id,
-                        polygon: new google.maps.Polygon({
-                            paths: shape,
-                            strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
-                            fillColor: "#444444",
-                            fillOpacity: 0.25,
-                            draggable: true,
-                            editable: true,
-                        })
-                    }
-                }),
                 solarArrays: data.solarArrays,
             }
-            setInputs(inputs);
+            setInputs(storedInputs);
         }
         initForm();
     }, []);

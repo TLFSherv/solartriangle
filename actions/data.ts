@@ -153,7 +153,7 @@ export async function cacheExists(key?: string) {
 
         const identifier = await getIdentifier();
         const inputKey = key ?? `user-input:${identifier}`;
-        return await myRedisClient.exists(inputKey);
+        return await myRedisClient.exists(inputKey) > 0;
     } catch (e) {
         console.error(e);
     }

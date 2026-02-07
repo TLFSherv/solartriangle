@@ -1,7 +1,6 @@
 export type FormInputs = {
     address: string;
     location: { lat: number; lng: number } | null;
-    polygons: { id: number; polygon: google.maps.Polygon }[];
     solarArrays: SolarArray[];
 }
 export type SolarArray = {

@@ -3,77 +3,94 @@ import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../public/shapes.png'
 import erase from '../../../public/eraser.png'
-import { createRectanglePoints } from '../lib/geometryTool'
-import { FormInputs } from "@/app/types/types";
-import { getInputsFromCache } from "@/actions/data";
+import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
+import { FormInputs, SolarArray } from "@/app/types/types";
+import { readInputsFromDb } from "@/actions/data";
 
-export default function DrawingTool(props: {
+type Polygon = {
+    id: number;
+    area: number;
+    azimuth: number;
+    polygon: google.maps.Polygon;
+}
+export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }: {
     inputs: FormInputs,
     setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
     activeId: number,
     setActiveId: React.Dispatch<React.SetStateAction<number>>
 }) {
     const map = useMap();
-    const [polygons, setPolygons] = useState<{ id: number; polygon: google.maps.Polygon }[] | null>(props.inputs.polygons);
-    const polygonsRef = useRef<{ id: number; polygon: google.maps.Polygon }[] | null>(polygons);
+    const [polygons, setPolygons] = useState<Polygon[] | null>();
+    const polygonsRef = useRef<Polygon[] | null>(polygons);
     const polygonIdRef = useRef(1);
     const mapInitialised = useRef(false);
-    const { setInputs } = props;
 
+    // update solarArray input object to be consistent with polygons
     useEffect(() => {
+        if (!polygons || polygons.length === 0) return
         polygonsRef.current = polygons;
-        setInputs(prev => ({ ...prev, polygons: polygonsRef.current || [] }))
+
+        const initSolarArray = {
+            id: 0,
+            solarCapacity: 0,
+            numberOfPanels: 0,
+            area: 0,
+            azimuth: 0,
+            shape: [],
+            areaToPanels: false,
+        };
+        // store each solarArray in the array at the index equal to its id
+        const lastId = polygons.reduce((largest, current) => (current.id > largest.id ? current : largest)).id;
+        const solarArraysById: SolarArray[] = Array.from({ length: lastId + 1 }, () => initSolarArray);
+        inputs.solarArrays.forEach(s => solarArraysById[s.id] = s);
+        let newSolarArrays = polygons.map(
+            ({ id, area, azimuth, polygon }) =>
+                ({ ...solarArraysById[id], id, area, azimuth, shape: getPolygonPath(polygon) })
+        );
+        setInputs(prev => ({ ...prev, solarArrays: newSolarArrays }));
     }, [polygons]);
+
 
     useEffect(() => {
         resetPolygonStrokes();
         polygonsRef.current?.forEach((p) => {
-            if (p.id === props.activeId)
-                p.polygon.setOptions({ strokeColor: "#F0662A" });
+            if (p.id === activeId) p.polygon.setOptions({ strokeColor: "#F0662A" });
         })
-    }, [props.activeId])
+    }, [activeId]);
 
     // init polygons on map load
     useEffect(() => {
         const initMap = async () => {
-            const { data } = await getInputsFromCache();
+            const { data } = await readInputsFromDb();
+            if (!map || !data || mapInitialised.current) return
 
-            if (!data || !map ||
-                !props.inputs.polygons.length) return
-
-            // add event listeners to polygons
-            props.inputs.polygons.forEach(({ id, polygon: poly }) => {
-                poly.addListener("click", () => props.setActiveId(id));
-                // update polygon if vertices change
-                poly.getPath().addListener("set_at", () => {
-                    setInputs((prev) => ({ ...prev, polygons: props.inputs.polygons || [] }))
-                });
-
-                poly.setMap(map);
-            })
+            // add polygons to map
+            inputs.solarArrays.forEach((sa) => addPolygon({ id: sa.id, area: sa.area, azimuth: sa.azimuth, path: sa.shape }))
             mapInitialised.current = true;
-            setPolygons(props.inputs.polygons);
         }
         // only call once
         if (!mapInitialised.current) initMap();
-    }, [props.inputs.polygons.join('-')])
+    }, [inputs])
 
-    const addPolygon = () => {
+    const addPolygon = (input?: { id: number; area: number; azimuth: number; path: { lat: number; lng: number }[] | undefined }) => {
         if (!map) return;
 
         const center = map.getCenter();
         const zoom = map.getZoom();
 
         if (!center || !zoom) return;
+        let { id, area, azimuth, path } = input || { id: 0, area: 0, azimuth: 0, polygon: undefined };
+        if (!input) {
+            const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
+            path = createRectanglePoints(center, length, length);
 
-        const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
-        const path = createRectanglePoints(center, length, length);
-        let lastId = 0;
-        if (polygons && polygons.length > 0)
-            lastId = polygons.reduce((largest, current) => (current.id > largest.id ? current : largest)).id;
-        const id = lastId + 1;
+            let lastId = 0;
+            if (polygons && polygons.length > 0)
+                lastId = polygons.reduce((largest, current) => (current.id > largest.id ? current : largest)).id;
+            id = lastId + 1;
+        }
 
-        const poly = new google.maps.Polygon({
+        const polygon = new google.maps.Polygon({
             paths: path,
             strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
             fillColor: "#444444",
@@ -82,17 +99,28 @@ export default function DrawingTool(props: {
             editable: true,
         });
 
-        if (polygons) setPolygons([...polygons, { id: id, polygon: poly }]);
-        else setPolygons([{ id: id, polygon: poly }]);
 
-        poly.addListener("click", () => props.setActiveId(id));
+        setPolygons((prev) =>
+            prev ? [...prev, { id: id, area, azimuth, polygon }]
+                : [{ id: id, area, azimuth, polygon }]
+        );
+
+        polygon.addListener("click", () => setActiveId(id));
 
         // update polygon if vertices change
-        poly.getPath().addListener("set_at", () => {
-            setInputs((prev) => ({ ...prev, polygons: polygonsRef.current || [] }))
+        polygon.getPath().addListener("set_at", () => {
+            // debounce updating area and azimuth
+            setTimeout(() => {
+                const poly = polygonsRef.current?.find(p => p.id === id);
+                if (!poly?.polygon) return
+                const area = Number(getPolygonArea(poly.polygon).toFixed(2));
+                const azimuth = Number(getPolygonAzimuth(poly.polygon).toFixed(2));
+                polygonsRef.current = polygonsRef.current?.map(p => p.id === id ? { ...p, area, azimuth } : p);
+                setPolygons(polygonsRef.current);
+            }, 3000);
         });
-
-        poly.setMap(map);
+        setActiveId(id);
+        polygon.setMap(map);
         polygonIdRef.current = id + 1;
     }
 
@@ -103,7 +131,10 @@ export default function DrawingTool(props: {
         )[0];
         if (!selectedPolygon) return;
         selectedPolygon.polygon.setMap(null);
-        setPolygons(polygons?.filter((poly) => poly !== selectedPolygon));
+        const newPolygons = polygons?.filter((poly) => poly !== selectedPolygon);
+        setPolygons(() => newPolygons);
+        // make another polygon active after deleting
+        if (newPolygons.length > 0) setActiveId(() => newPolygons[0].id);
     }
 
     const resetPolygonStrokes = () => {
@@ -117,7 +148,7 @@ export default function DrawingTool(props: {
         <div className="mb-2">
             <div className="flex ml-auto w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
                 <ol className="flex flex-1 justify-around items-center text-xs text-center font-[Inter]">
-                    <li className="cursor-pointer" onClick={addPolygon}>
+                    <li className="cursor-pointer" onClick={() => addPolygon()}>
                         <Image src={shapes} width={30} height={30} alt={"shapes"} />
                         Add
                     </li>

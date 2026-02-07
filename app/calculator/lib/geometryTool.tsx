@@ -32,6 +32,11 @@ export function getPolygonArea(polygon: google.maps.Polygon) {
     return google.maps.geometry.spherical.computeArea(polygon.getPath().getArray());
 }
 
+export function getPolygonPath(polygon: google.maps.Polygon) {
+    const path = polygon.getPath().getArray();
+    return path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+}
+
 export function getPolygonAzimuth(polygon: google.maps.Polygon) {
     const path = polygon.getPath().getArray();
 
