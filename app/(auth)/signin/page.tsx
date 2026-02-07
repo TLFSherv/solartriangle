@@ -34,6 +34,7 @@ export default function Sigin() {
         }, initialState)
     return (
         <div className="mt-16 mx-8 space-y-10">
+            <div><Toaster /></div>
             <h1 className="font-[Inter] text-[#F0662A] text-5xl sm:text-6xl text-center tracking-wide">
                 Account Login
             </h1>
@@ -93,7 +94,7 @@ export default function Sigin() {
                 <Button
                     form="siginForm"
                     type="submit"
-                    text="Sign in"
+                    text="Done"
                     style="bg-linear-[88deg,#F0662A,#F2C521] w-sm" />
                 <Link href={"/signup"}>
                     <Button

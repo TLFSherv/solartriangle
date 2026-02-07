@@ -7,6 +7,7 @@ import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
 import { storeInputsInCache, readInputsFromDb, storeInputsInDb } from "@/actions/data";
 import { type FormInputs } from "@/app/types/types";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -65,6 +66,7 @@ export default function Calculator() {
             // navigate to dashboard
             router.push('/dashboard');
         } else {
+            toast.error('Error')
             // let user know there was an error
             setStatus({
                 value: cacheResult.success ? FormStatus.Success : FormStatus.Error,
@@ -78,6 +80,9 @@ export default function Calculator() {
         const lng = inputs.location?.lng.toString() || "";
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
         const result = await storeInputsInDb(inputs.address, lat, lng, inputs.solarArrays);
+
+        if (!result.success) toast.error('Failed to save');
+        toast.success('Save successful');
         setStatus({
             value: result.success ? FormStatus.Success : FormStatus.Error,
             details: result.details
@@ -87,6 +92,7 @@ export default function Calculator() {
     return (
         <form className="space-y-10" onSubmit={handleSubmit}>
             <div className="space-y-2">
+                <div><Toaster /></div>
                 {(status?.value === FormStatus.Error) &&
                     <p className="text-red-500 text-sm text-center">
                         {(status?.details?.fieldErrors?.lat || status?.details?.fieldErrors?.lng) ?

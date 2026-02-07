@@ -120,7 +120,7 @@ export default function Sigup() {
                 <Button
                     type="submit"
                     form="signupForm"
-                    text="Sign up"
+                    text="Done"
                     style="bg-linear-[88deg,#F0662A,#F2C521] w-sm" />
                 <Link href={"/signin"}>
                     <Button
