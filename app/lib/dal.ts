@@ -82,7 +82,6 @@ export async function dbInsert(solarArray: NewSolarArray, polygon: NewPolygon, a
                     set: { ...address }
                 });
 
-            console.log(addressId, polygonId);
             await tx.insert(solarArrays)
                 .values({ ...solarArray, polygonId: polygonId.id, addressId: addressId.id })
                 .returning({ id: solarArrays.id });

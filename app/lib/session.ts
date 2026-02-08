@@ -1,4 +1,4 @@
-import 'server-only'
+'server-only'
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
@@ -60,11 +60,12 @@ export async function deleteSession() {
 }
 
 export async function encrypt(payload: SessionPayload) {
-    return new SignJWT(payload)
+    const data = payload || {};
+    return new SignJWT(data)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime('7d')
-        .sign(encodedKey)
+        .sign(encodedKey);
 }
 
 export async function decrypt(session: string | undefined = ''): Promise<SessionPayload | null> {

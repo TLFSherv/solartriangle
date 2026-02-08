@@ -54,8 +54,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
         }
         // verify password
         const isPasswordValid = await bcrypt.compare(data.password, user.password);
-        console.log(isPasswordValid);
-        console.log(user.password, data.password);
+
         if (!isPasswordValid) {
             return {
                 success: false,
