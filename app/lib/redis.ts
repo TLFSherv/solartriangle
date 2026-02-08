@@ -8,7 +8,7 @@ export default async function getRedisClient() {
         if (redisClient?.isOpen) {
             return redisClient
         }
-        redisClient = redis.createClient()
+        redisClient = redis.createClient({ url: process.env.REDIS_URL })
         redisClient.on('error', (err) => console.log('Redis client error', err));
 
         await redisClient.connect();
