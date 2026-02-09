@@ -86,16 +86,16 @@ const PlacesAutocomplete = (props:
             <AdvancedMarker key={address} position={location} />
             <div
                 ref={searchContainer}
-                className="mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
+                className="mb-10 sm:mb-14 flex flex-col justify-center items-center max-w-xl mx-auto">
                 <label className='space-x-2 w-full'>
-                    <span>Address:</span>
+                    <span className='text-sm sm:text-base'>Address:</span>
                     <input
                         value={address}
                         placeholder='5 Paget ...'
                         onChange={props.handleChange}
                         onFocus={() => setIsActive(true)}
                         name="address"
-                        className="py-1 px-2 bg-[#444444] rounded-md w-4/5 h-[40px]"
+                        className="py-1 px-2 bg-[#444444] rounded-md w-full sm:w-4/5 h-[40px]"
                         type="text"
                         autoComplete="off" />
                 </label>

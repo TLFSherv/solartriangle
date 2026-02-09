@@ -97,8 +97,8 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             fillOpacity: 0.25,
             draggable: true,
             editable: true,
-        });
 
+        });
 
         setPolygons((prev) =>
             prev ? [...prev, { id: id, area, azimuth, polygon }]
@@ -145,16 +145,21 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
     }
 
     return (
-        <div className="mb-2">
-            <div className="flex ml-auto w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
+        <div className="mb-2 space-y-6">
+            <div>
+                <p className="text-sm sm:text-base">
+                    Add shapes on the map to represent your solar array.
+                </p>
+            </div>
+            <div className="flex ml-auto sm:w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
                 <ol className="flex flex-1 justify-around items-center text-xs text-center font-[Inter]">
-                    <li className="cursor-pointer" onClick={() => addPolygon()}>
+                    <li className="cursor-pointer mx-auto" onClick={() => addPolygon()}>
                         <Image src={shapes} width={30} height={30} alt={"shapes"} />
-                        Add
+                        Add shape
                     </li>
-                    <li className="cursor-pointer" onClick={deletePolygon}>
+                    <li className="cursor-pointer mx-auto" onClick={deletePolygon}>
                         <Image src={erase} width={30} height={30} alt={"eraser"} />
-                        Erase
+                        Erase shape
                     </li>
                 </ol>
             </div>

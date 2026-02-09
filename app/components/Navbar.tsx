@@ -13,11 +13,11 @@ export default function Navbar() {
         { name: "Research", href: "/research" },
     ];
     const isHome = pathname === "/";
-    if (isHome) return <HomeNavbar navLinks={navbarLinks} />
-    return <MainNavbar navLinks={navbarLinks} pathname={pathname} />
+    if (isHome) return <DynamicNavbar navLinks={navbarLinks} />
+    return <StaticNavbar navLinks={navbarLinks} pathname={pathname} />
 }
 
-function HomeNavbar(props: { navLinks: { name: string, href: string }[] }) {
+function DynamicNavbar(props: { navLinks: { name: string, href: string }[] }) {
     const [isVisible, setIsVisible] = useState(true)
     const [screenY, setScreenY] = useState(0)
     const navLinks = props.navLinks;
@@ -43,7 +43,7 @@ function HomeNavbar(props: { navLinks: { name: string, href: string }[] }) {
             onClick={() => setIsVisible(true)}
             className={`sticky top-4 border border-2 border-[#444444] rounded-3xl py-2 mt-2 mx-4 max-w-6xl  ${isVisible ? "" : "size-[48px] border-4 cursor-pointer border-[#F0662A]"}`}>
             {isVisible &&
-                <ul className='flex justify-evenly font-[Darker_Grotesque] text-2xl tracking-wider'>
+                <ul className='flex justify-evenly font-[Darker_Grotesque] text-xl sm:text-2xl tracking-wider text-[#F2F2F0]'>
                     {navLinks.map((link) => {
                         const isHome = link.name === 'Home';
                         return <Link href={link.href}
@@ -58,12 +58,12 @@ function HomeNavbar(props: { navLinks: { name: string, href: string }[] }) {
     )
 }
 
-function MainNavbar(props: { navLinks: { name: string, href: string }[], pathname: string }) {
+function StaticNavbar(props: { navLinks: { name: string, href: string }[], pathname: string }) {
     const navLinks = props.navLinks;
     const pathname = props.pathname;
     return (
         <div className='border border-2 border-[#444444] rounded-3xl py-2 mt-2 mx-4 max-w-6xl'>
-            <ul className='flex justify-evenly font-[Darker_Grotesque] text-2xl tracking-wider'>
+            <ul className='flex justify-evenly font-[Darker_Grotesque] text-xl sm:text-2xl tracking-wider text-[#F2F2F0]'>
                 {navLinks.map((link) => {
                     const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== "/");
                     return <Link href={link.href} key={link.name} >

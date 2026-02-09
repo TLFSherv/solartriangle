@@ -33,18 +33,18 @@ export default function Sigin() {
             }
         }, initialState)
     return (
-        <div className="mt-16 mx-8 space-y-10">
+        <div className="mt-16 mx-4 sm:mx-8 space-y-8 sm:space-y-10">
             <div><Toaster /></div>
-            <h1 className="font-[Inter] text-[#F0662A] text-5xl sm:text-6xl text-center tracking-wide">
+            <h1 className="font-[Inter] text-[#F0662A] text-4xl sm:text-5xl sm:text-6xl text-center tracking-wide">
                 Account Login
             </h1>
-            <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-xl sm:text-2xl">
+            <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-lg sm:text-xl">
                 Enter your credentials below to sign in to your account.
                 If you do not have an account please select sign up.
             </h2>
             <form id="siginForm"
                 action={formAction}
-                className="flex flex-col gap-8 justify-center items-center font-[Inter] font-light text-md">
+                className="flex flex-col gap-8 justify-center items-center font-[Inter] font-light text-sm sm:text-md">
                 {state?.message && !state.success &&
                     <p className="text-sm text-red-500">{state?.message}</p>
                 }
@@ -90,16 +90,16 @@ export default function Sigin() {
                     </div>
                 </div>
             </form >
-            <div className="flex flex-col items-center gap-8 font-[Inter] font-light">
+            <div className="flex flex-col items-center gap-4 sm:gap-8 font-[Inter] font-light">
                 <Button
                     form="siginForm"
                     type="submit"
                     text="Done"
-                    style="bg-linear-[88deg,#F0662A,#F2C521] w-sm" />
+                    style="bg-linear-[88deg,#F0662A,#F2C521] w-xs sm:w-sm" />
                 <Link href={"/signup"}>
                     <Button
                         text="Sign up"
-                        style="bg-[#444444] w-sm" />
+                        style="bg-[#444444] w-xs sm:w-sm" />
                 </Link>
             </div>
         </div >

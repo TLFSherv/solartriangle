@@ -45,7 +45,7 @@ export default function Home() {
         <h2 className="text-center text-[#F0662A] text-5xl font-[Darker_Grotesque]">
           Summary
         </h2>
-        <p className="px-20 text-lg sm:text-xl text-center font-[Space_Grotesk] font-light">
+        <p className="px-6 sm:px-20 text-lg sm:text-xl text-center font-[Space_Grotesk] font-light">
           The solar calculator uses the most accurate real
           time weather data, location data and panel performance
           data to give an accurate forecast of future power
@@ -55,7 +55,7 @@ export default function Home() {
           <Link href={"/learn"}>
             <button
               type="button"
-              className="py-2 border-3 border-[#F6513A] rounded-2xl cursor-pointer tracking-wider w-sm">
+              className="py-2 border-3 border-[#F6513A] rounded-2xl cursor-pointer tracking-wider w-xs sm:w-sm">
               Learn more
             </button>
           </Link>

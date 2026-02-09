@@ -37,11 +37,11 @@ export default function Sigup() {
         );
 
     return (
-        <div className="mt-16 mx-8 space-y-10">
-            <h1 className="font-[Inter] text-[#F0662A] text-5xl sm:text-6xl text-center tracking-wide">
+        <div className="mt-16 mx-4 sm:mx-8 space-y-8 sm:space-y-10">
+            <h1 className="font-[Inter] text-[#F0662A] text-4xl sm:text-5xl sm:text-6xl text-center tracking-wide">
                 Create Account
             </h1>
-            <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-xl sm:text-2xl">
+            <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-lg sm:text-xl">
                 Please enter a valid email and password to create an account. If you already have an account please select sign in.
             </h2>
             <form action={formAction}
@@ -50,7 +50,7 @@ export default function Sigup() {
                 {state?.message && !state.success && (
                     <p className="text-sm text-red-500">{state.message}</p>
                 )}
-                <div className="grid grid-cols-[1fr_2fr] grid-rows-2 gap-4">
+                <div className="grid grid-cols-[0.8fr_2fr] sm:grid-cols-[1fr_2fr] grid-rows-2 gap-2 sm:gap-4 ">
                     <div className="my-auto text-sm sm:text-base">
                         <label htmlFor="email">
                             Email
@@ -116,16 +116,16 @@ export default function Sigup() {
                     </div>
                 </div>
             </form>
-            <div className="flex flex-col items-center gap-8 font-[Inter] font-light">
+            <div className="flex flex-col items-center gap-4 sm:gap-8 font-[Inter] font-light">
                 <Button
                     type="submit"
                     form="signupForm"
                     text="Done"
-                    style="bg-linear-[88deg,#F0662A,#F2C521] w-sm" />
+                    style="bg-linear-[88deg,#F0662A,#F2C521] w-xs sm:w-sm" />
                 <Link href={"/signin"}>
                     <Button
                         text="Sign in"
-                        style="bg-[#444444] w-sm" />
+                        style="bg-[#444444] w-xs sm:w-sm" />
                 </Link>
             </div>
         </div>

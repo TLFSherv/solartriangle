@@ -30,8 +30,8 @@ export default function SuggestionsDropdown(props:
     }
 
     return (
-        <div className="w-4/5 mt-1">
-            <ul className="text-sm divide-y divide-[#444444] mx-4 w-full">
+        <div className="w-full sm:w-4/5 mt-1">
+            <ul className="text-sm divide-y divide-[#444444] sm:mx-4 w-full text-[#F2F2F0]">
                 {suggestions.map((s, i) => {
                     const name = s.placePrediction.text.text;
                     return (
