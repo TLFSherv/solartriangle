@@ -41,7 +41,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
 
     return (
         <div className="space-y-4">
-            <p className="text-sm sm:text-base">
+            <p className="text-sm sm:text-lg">
                 Select the name of the solar array below to enter additional details about your solar panels:
             </p>
             <div className="flex justify-evenly border-2 border-[#787572] rounded-xl p-3 sm:p-6 gap-2 sm:gap-4 max-w-3xl mx-auto">

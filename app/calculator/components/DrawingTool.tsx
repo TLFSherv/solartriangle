@@ -147,7 +147,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
     return (
         <div className="mb-2 space-y-6">
             <div>
-                <p className="text-sm sm:text-base">
+                <p className="text-sm sm:text-lg">
                     Add shapes on the map to represent your solar array.
                 </p>
             </div>

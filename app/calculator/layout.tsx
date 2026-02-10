@@ -9,8 +9,8 @@ export default function CalculatorLayout({ children }: {
             <h1 className="text-4xl sm:text-5xl text-center font-[Space_Grotesk] text-[#F0662A]">
                 Solar Calculator
             </h1>
-            <p className="text-sm/6 sm:text-lg">
-                Enter your address in the address field below and select from the dropdown to show your homes roof on the map.
+            <p className="text-sm sm:text-lg">
+                Enter your address in the address field below and select from the dropdown to show your home's roof on the map.
             </p>
             {children}
         </div>
