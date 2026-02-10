@@ -28,7 +28,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
             }
             setInputs(prev => ({
                 ...prev,
-                solarArrays: prev.solarArrays.map(item => item.id === activeIndex ? newSolarArrays : item)
+                solarArrays: prev.solarArrays.map((item, i) => i === activeIndex ? newSolarArrays : item)
             }));
             return
         }
@@ -84,7 +84,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
                             min={1}
-                            max={10}
+                            max={50}
                             autoComplete="false"
                             disabled={isEmpty}
                             required />
