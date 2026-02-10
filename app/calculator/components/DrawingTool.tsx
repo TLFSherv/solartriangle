@@ -27,8 +27,14 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
     // update solarArray input object to be consistent with polygons
     useEffect(() => {
-        if (!polygons || polygons.length === 0) return
+        if (!polygons) return
         polygonsRef.current = polygons;
+
+        if (polygons.length === 0) {
+            console.log(polygons);
+            setInputs((prev) => ({ ...prev, solarArrays: [] }));
+            return
+        }
 
         const initSolarArray = {
             id: 0,
