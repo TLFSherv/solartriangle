@@ -272,9 +272,16 @@ export async function storeInputsInDb(address: string, lat: string, lng: string,
     try {
         // validate form data
         const validationResult = z.safeParse(calculatorSchema, newData);
-        if (!validationResult.success) return {
-            success: false,
-            details: z.flattenError(validationResult.error)
+        if (!validationResult.success) {
+            let { address, lat, lng, solarArrays } = z.flattenError(validationResult.error).fieldErrors;
+            return {
+                success: false,
+                details: (address ? address[0] : "") + " " +
+                    (lat ? lat[0] : "") + " " +
+                    (lng ? lng[0] : "") + " " +
+                    (solarArrays ? solarArrays[0] : "")
+
+            }
         }
 
         // get user id

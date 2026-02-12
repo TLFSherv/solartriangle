@@ -63,7 +63,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         </label>
                         <input
                             name="solarCapacity"
-                            value={solarArrays[activeIndex]?.solarCapacity || ''}
+                            value={solarArrays[activeIndex]?.solarCapacity ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
@@ -79,7 +79,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         </label>
                         <input
                             name="numberOfPanels"
-                            value={solarArrays[activeIndex]?.numberOfPanels || ''}
+                            value={solarArrays[activeIndex]?.numberOfPanels ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
@@ -95,7 +95,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         </label>
                         <input
                             name="azimuth"
-                            value={solarArrays[activeIndex]?.azimuth || ''}
+                            value={solarArrays[activeIndex]?.azimuth ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
@@ -109,7 +109,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         </label>
                         <input
                             name="area"
-                            value={solarArrays[activeIndex]?.area || ''}
+                            value={solarArrays[activeIndex]?.area ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"

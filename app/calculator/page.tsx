@@ -8,6 +8,7 @@ import SolarArrayForm from "./components/SolarArrayForm";
 import { storeInputsInCache, readInputsFromDb, storeInputsInDb } from "@/actions/data";
 import { type FormInputs } from "@/app/types/types";
 import toast, { Toaster } from "react-hot-toast";
+import { string } from "zod";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
@@ -82,7 +83,7 @@ export default function Calculator() {
         const result = await storeInputsInDb(inputs.address, lat, lng, inputs.solarArrays);
 
         if (!result.success) toast.error('Failed to save');
-        toast.success('Save successful');
+        else toast.success('Save successful');
         setStatus({
             value: result.success ? FormStatus.Success : FormStatus.Error,
             details: result.details
