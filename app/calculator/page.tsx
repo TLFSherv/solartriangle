@@ -8,7 +8,6 @@ import SolarArrayForm from "./components/SolarArrayForm";
 import { storeInputsInCache, readInputsFromDb, storeInputsInDb } from "@/actions/data";
 import { type FormInputs } from "@/app/types/types";
 import toast, { Toaster } from "react-hot-toast";
-import { string } from "zod";
 
 export default function Calculator() {
     const initInputs: FormInputs = {
