@@ -24,7 +24,58 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
     const polygonsRef = useRef<Polygon[] | null>(polygons);
     const polygonIdRef = useRef(1);
     const mapInitialised = useRef(false);
+    const [selectedCircleId, setSelectedCircleId] = useState<number>();
+    const [circles, setCircles] = useState<{ id: number, circle: google.maps.Circle }[]>([]);
+    const circleIdRef = useRef(1);
 
+    // add event listener to draw polylines to map
+    useEffect(() => {
+        // Add a listener for the click event
+        map?.addListener("click", addCircle);
+    }, [map]);
+
+    useEffect(() => {
+        if (circles.length && circles.length % 4 === 0) {
+            // create polygon
+            console.log('Create polygon');
+            const path = circles.map(c => c.circle.getCenter());
+            const polygonId = polygonIdRef.current;
+            if (path) addPolygon({ id: polygonId, area: 0, azimuth: 0, path: path as google.maps.LatLng[] });
+            // remove all circles
+            circles.forEach(c => c.circle.setMap(null));
+            setCircles([]);
+            setSelectedCircleId(0);
+        }
+    }, [circles])
+
+    function addCircle(event: google.maps.MapMouseEvent) {
+        if (!map) return
+
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+
+        if (!center || !zoom) return;
+        const radius = Math.max(Math.round(2154434.69 * (0.464) ** zoom), 1);
+
+        const circle = new google.maps.Circle({
+            strokeColor: '#ffdd00ff',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#ffdd00ff',
+            fillOpacity: 0.35,
+            center: event.latLng,
+            radius,
+            draggable: true,
+        })
+        const id = circleIdRef.current;
+        circle.addListener('click', () => {
+            setSelectedCircleId(id);
+        });
+
+        setCircles((prev) => [...prev, { id, circle }]);
+        circle.setMap(map);
+        circleIdRef.current = id + 1;
+    }
     // update solarArray input object to be consistent with polygons
     useEffect(() => {
         if (!polygons) return
@@ -78,7 +129,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         if (!mapInitialised.current) initMap();
     }, [inputs])
 
-    const addPolygon = (input?: { id: number; area: number; azimuth: number; path: { lat: number; lng: number }[] | undefined }) => {
+    const addPolygon = (input?: { id: number; area: number; azimuth: number; path: { lat: number; lng: number }[] | google.maps.LatLng[] | undefined }) => {
         if (!map) return;
 
         const center = map.getCenter();
@@ -86,10 +137,11 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
         if (!center || !zoom) return;
         let { id, area, azimuth, path } = input || { id: 0, area: 0, azimuth: 0, polygon: undefined };
-        if (!input) {
+        if (!path) {
             const length = screen.width / 10 * (156543 / Math.pow(2, zoom));
             path = createRectanglePoints(center, length, length);
-
+        }
+        if (!id) {
             let lastId = 0;
             if (polygons && polygons.length > 0)
                 lastId = polygons.reduce((largest, current) => (current.id > largest.id ? current : largest)).id;
@@ -101,10 +153,13 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             strokeColor: id === 1 ? "#F0662A" : "#1E1E1E",
             fillColor: "#444444",
             fillOpacity: 0.25,
-            draggable: true,
-            editable: true,
-
+            draggable: true
         });
+
+        if (!area || !azimuth) {
+            area = Number(getPolygonArea(polygon).toFixed(2));
+            azimuth = Number(getPolygonAzimuth(polygon).toFixed(2));
+        }
 
         setPolygons((prev) =>
             prev ? [...prev, { id: id, area, azimuth, polygon }]
@@ -113,24 +168,18 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
         polygon.addListener("click", () => setActiveId(id));
 
-        // update polygon if vertices change
-        polygon.getPath().addListener("set_at", () => {
-            // debounce updating area and azimuth
-            setTimeout(() => {
-                const poly = polygonsRef.current?.find(p => p.id === id);
-                if (!poly?.polygon) return
-                const area = Number(getPolygonArea(poly.polygon).toFixed(2));
-                const azimuth = Number(getPolygonAzimuth(poly.polygon).toFixed(2));
-                polygonsRef.current = polygonsRef.current?.map(p => p.id === id ? { ...p, area, azimuth } : p);
-                setPolygons(polygonsRef.current);
-            }, 3000);
-        });
         setActiveId(id);
         polygon.setMap(map);
         polygonIdRef.current = id + 1;
     }
 
     const deletePolygon = () => {
+        if (selectedCircleId) {
+            const newCircles = circles.filter(c => c.id !== selectedCircleId);
+            const circleToDelete = circles.filter(c => c.id === selectedCircleId)[0];
+            setCircles(newCircles);
+            circleToDelete.circle.setMap(null);
+        }
         if (!polygons) return;
         const selectedPolygon = polygons?.filter((p) =>
             p.polygon.get("strokeColor") === '#F0662A'
