@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react"
 import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import shapes from '../../../public/shapes.png'
+import undo from '../../../public/undo.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
 import { FormInputs, SolarArray } from "@/app/types/types";
 import { readInputsFromDb } from "@/actions/data";
+import { object } from "zod";
 
 type Polygon = {
     id: number;
@@ -27,19 +29,21 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
     const [selectedCircleId, setSelectedCircleId] = useState<number>();
     const [circles, setCircles] = useState<{ id: number, circle: google.maps.Circle }[]>([]);
     const circleIdRef = useRef(1);
+    const circleStateStack = useRef<Map<number, { lat: number; lng: number }[]>>(new Map);
+    const polygonStateStack = useRef<Map<number, { lat: number; lng: number }[][]>>(new Map);
 
-    // add event listener to draw polylines to map
+    // add event listener to add circles to map
     useEffect(() => {
         // Add a listener for the click event
         map?.addListener("click", addCircle);
     }, [map]);
 
+    // when 4 circles are added to the map, replace with polygon
     useEffect(() => {
-        if (circles.length && circles.length % 4 === 0) {
+        if (circles.length === 4) {
             // create polygon
-            console.log('Create polygon');
-            const path = circles.map(c => c.circle.getCenter());
             const polygonId = polygonIdRef.current;
+            const path = circles.map(c => c.circle.getCenter());
             if (path) addPolygon({ id: polygonId, area: 0, azimuth: 0, path: path as google.maps.LatLng[] });
             // remove all circles
             circles.forEach(c => c.circle.setMap(null));
@@ -70,6 +74,16 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         const id = circleIdRef.current;
         circle.addListener('click', () => {
             setSelectedCircleId(id);
+        });
+
+        circle.addListener('dragstart', () => {
+            const center = circle.getCenter();
+            if (!center || !circleStateStack.current) return
+            const currState = { lat: center?.lat(), lng: center?.lng() };
+            let prevStates = circleStateStack.current?.get(id);
+            if (prevStates) circleStateStack.current.set(id, [...prevStates, currState]);
+            else circleStateStack.current.set(id, [currState]);
+            console.log(circleStateStack.current);
         });
 
         setCircles((prev) => [...prev, { id, circle }]);
@@ -167,6 +181,14 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         );
 
         polygon.addListener("click", () => setActiveId(id));
+        polygon.addListener("dragstart", () => {
+            const currState = polygon.getPath().getArray().map(path => ({ lat: path.lat(), lng: path.lng() }));
+            if (!currState || !polygonStateStack.current) return
+
+            let prevStates = polygonStateStack.current?.get(id);
+            if (prevStates) polygonStateStack.current.set(id, [...prevStates, currState]);
+            else polygonStateStack.current.set(id, [currState]);
+        });
 
         setActiveId(id);
         polygon.setMap(map);
@@ -178,7 +200,9 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             const newCircles = circles.filter(c => c.id !== selectedCircleId);
             const circleToDelete = circles.filter(c => c.id === selectedCircleId)[0];
             setCircles(newCircles);
+            setSelectedCircleId(0);
             circleToDelete.circle.setMap(null);
+            return
         }
         if (!polygons) return;
         const selectedPolygon = polygons?.filter((p) =>
@@ -192,6 +216,20 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         if (newPolygons.length > 0) setActiveId(() => newPolygons[0].id);
     }
 
+    function undoAction() {
+        if (!circleStateStack.current) return
+        circles.forEach(({ id, circle }) => {
+            let lastState = circleStateStack.current?.get(id)?.pop();
+            if (lastState) circle.setCenter(lastState);
+        });
+
+        if (!polygons || !polygonStateStack.current) return
+        polygons.forEach(poly => {
+            let lastState = polygonStateStack.current.get(poly.id)?.pop();
+            if (lastState) poly.polygon.setPath(lastState);
+        });
+    }
+
     const resetPolygonStrokes = () => {
         polygonsRef.current?.forEach((p) => {
             if (p.polygon.get("strokeColor") === '#F0662A')
@@ -203,18 +241,18 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         <div className="mb-2 space-y-6">
             <div>
                 <p className="text-sm sm:text-lg">
-                    Add shapes on the map to represent your solar array.
+                    Click on the map to draw your solar array.
                 </p>
             </div>
             <div className="flex ml-auto sm:w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
                 <ol className="flex flex-1 justify-around items-center text-xs text-center font-[Inter]">
-                    <li className="cursor-pointer mx-auto" onClick={() => addPolygon()}>
-                        <Image src={shapes} width={30} height={30} alt={"shapes"} />
-                        Add shape
+                    <li className="cursor-pointer mx-auto" onClick={undoAction}>
+                        <Image src={undo} width={30} height={30} alt={"undo arrow"} />
+                        Undo
                     </li>
                     <li className="cursor-pointer mx-auto" onClick={deletePolygon}>
                         <Image src={erase} width={30} height={30} alt={"eraser"} />
-                        Erase shape
+                        Erase
                     </li>
                 </ol>
             </div>
