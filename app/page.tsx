@@ -6,7 +6,7 @@ import circles_lg from "../public/circles-lg.png"
 
 export default function Home() {
   return (
-    <div className="flex-1 flex flex-col space-y-30 sm:space-y-40 my-20">
+    <div className="flex-1 flex flex-col space-y-30 sm:space-y-40 my-20 text-[#F2F2F0]">
       <section className='space-y-10 mx-8 z-[10]'>
         <h1 className="static text-[54px]/16 sm:text-6xl md:text-7xl text-center tracking-wider font-[Space_Grotesk] text-[#F0662A]">
           Master the Power of the Sun
