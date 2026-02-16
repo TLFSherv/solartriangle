@@ -84,7 +84,6 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             let prevStates = circleStateStack.current?.get(id);
             if (prevStates) circleStateStack.current.set(id, [...prevStates, currState]);
             else circleStateStack.current.set(id, [currState]);
-            console.log(circleStateStack.current);
         });
 
         setCircles((prev) => [...prev, { id, circle }]);
@@ -97,7 +96,6 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         polygonsRef.current = polygons;
 
         if (polygons.length === 0) {
-            console.log(polygons);
             setInputs((prev) => ({ ...prev, solarArrays: [] }));
             return
         }
