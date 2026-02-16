@@ -15,7 +15,7 @@ export default function PanelTilt() {
         { title: '3. The Sun', id: "#section3", level: 0 },
         { title: '4. Conclusion', id: "#section4", level: 0 }];
     return (
-        <div className="mt-12 space-y-8 mx-6 font-[Space_Grotesk] font-light">
+        <div className="mt-12 space-y-8 mx-6 font-[Space_Grotesk] font-light text-[#F2F2F0]">
             <h1 className="text-4xl text-center tracking-wide underline">
                 Panel Tilt and Latitude
             </h1>

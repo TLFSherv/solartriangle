@@ -19,7 +19,7 @@ export default function Azimuth() {
     ];
 
     return (
-        <div className="mt-12 space-y-8 mx-6 font-[Space_Grotesk] font-light">
+        <div className="mt-12 space-y-8 mx-6 font-[Space_Grotesk] font-light text-[#F2F2F0]">
             <h1 className="text-4xl text-center tracking-wide underline">
                 Calculating Azimuth
             </h1>

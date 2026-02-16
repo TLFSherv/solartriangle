@@ -5,7 +5,7 @@ export default function CalculatorLayout({ children }: {
 }) {
     return (
         <div
-            className="font-[Inter] font-light m-2 mt-10 sm:m-8 sm:mt-18 space-y-8 sm:space-y-10">
+            className="font-[Inter] font-light text-[#F2F2F0] m-2 mt-10 sm:m-8 sm:mt-18 space-y-8 sm:space-y-10">
             <h1 className="text-4xl sm:text-5xl text-center font-[Space_Grotesk] text-[#F0662A]">
                 Solar Calculator
             </h1>

@@ -3,7 +3,7 @@ import TopicCard from "./components/TopicCard";
 
 export default function Learn() {
     return (
-        <div className="mt-18 mx-2 sm:mx-6 space-y-16">
+        <div className="mt-18 mx-2 sm:mx-6 space-y-16 text-[#F2F2F0]">
             <div className="space-y-8 font-[Space_Grotesk] text-center">
                 <h1 className="text-5xl md:text-6xl tracking-wide text-[#F0662A]">
                     Learn

@@ -37,7 +37,7 @@ export default function Sigup() {
         );
 
     return (
-        <div className="mt-16 mx-4 sm:mx-8 space-y-8 sm:space-y-10">
+        <div className="mt-16 mx-4 sm:mx-8 space-y-8 sm:space-y-10 text-[#F2F2F0]">
             <h1 className="font-[Inter] text-[#F0662A] text-4xl sm:text-5xl sm:text-6xl text-center tracking-wide">
                 Create Account
             </h1>
