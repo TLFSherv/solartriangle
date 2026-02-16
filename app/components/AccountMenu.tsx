@@ -20,7 +20,7 @@ export default function AccountMenu({ email }: { email: string | undefined }) {
         <div
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => mouseHandler(false)}
-            className='font-[Darker_Grotesque] text-lg'>
+            className='font-[Darker_Grotesque] text-lg text-[#F2F2F0]'>
             {email || 'Account'}
             {isVisible &&
                 <ol className='absolute z-1 bg-black text-base/6'>

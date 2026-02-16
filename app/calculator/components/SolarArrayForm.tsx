@@ -67,7 +67,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
-                            min={1}
+                            min={50}
                             max={1000}
                             autoComplete="false"
                             disabled={isEmpty}
@@ -84,7 +84,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
                             min={1}
-                            max={50}
+                            max={15}
                             autoComplete="false"
                             disabled={isEmpty}
                             required />
@@ -115,6 +115,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             type="number"
                             min={1}
                             max={10000}
+                            step={0.01}
                             autoComplete="false"
                             disabled={isEmpty} />
                     </div>
