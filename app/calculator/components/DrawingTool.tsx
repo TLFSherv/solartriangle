@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
-import shapes from '../../../public/shapes.png'
 import undo from '../../../public/undo.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
 import { FormInputs, SolarArray } from "@/app/types/types";
 import { readInputsFromDb } from "@/actions/data";
-import { object } from "zod";
 
 type Polygon = {
     id: number;
@@ -54,6 +52,9 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
     function addCircle(event: google.maps.MapMouseEvent) {
         if (!map) return
+
+        // put a limit on the number of polygons
+        if (polygonsRef.current && polygonsRef.current.length > 5) return
 
         const center = map.getCenter();
         const zoom = map.getZoom();
@@ -202,6 +203,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             setCircles(newCircles);
             setSelectedCircleId(0);
             circleToDelete.circle.setMap(null);
+            circleStateStack.current.delete(selectedCircleId);
             return
         }
         if (!polygons) return;
@@ -212,6 +214,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         selectedPolygon.polygon.setMap(null);
         const newPolygons = polygons?.filter((poly) => poly !== selectedPolygon);
         setPolygons(() => newPolygons);
+        polygonStateStack.current.delete(selectedPolygon.id);
         // make another polygon active after deleting
         if (newPolygons.length > 0) setActiveId(() => newPolygons[0].id);
     }
@@ -241,7 +244,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         <div className="mb-2 space-y-6">
             <div>
                 <p className="text-sm sm:text-lg">
-                    Click on the map to draw your solar array.
+                    Click on the map to add points for drawing your solar array. Add four points to draw the solar array.
                 </p>
             </div>
             <div className="flex ml-auto sm:w-3/10 my-1 rounded-4xl border-3 border-[#444444] py-1">
