@@ -41,8 +41,33 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         if (circles.length === 4) {
             // create polygon
             const polygonId = polygonIdRef.current;
+
+            // find center point of all points
+            let center = circles.reduce((acc, curr) => {
+                const point = curr.circle.getCenter();
+                const coord = { lat: point?.lat() || 0, lng: point?.lng() || 0 };
+                return { lat: acc.lat + coord.lat, lng: acc.lng + coord.lng };
+            }, { lat: 0, lng: 0 });
+            center = { lat: center.lat / 4, lng: center.lng / 4 };
+
+            // order points around center
+            const orderedPath = new Array(4);
+            circles.forEach(({ circle }) => {
+                let c = circle.getCenter();
+                let cLat = c?.lat() as number;
+                let cLng = c?.lng() as number;
+                // check for top right
+                if (cLat < center.lat && cLng > center.lng) orderedPath[0] = c;
+                // check for bottom right
+                else if (cLat > center.lat && cLng > center.lng) orderedPath[1] = c;
+                // check for bottom left
+                else if (cLat > center.lat && cLng < center.lng) orderedPath[2] = c;
+                // check for top left
+                else if (cLat < center.lat && cLng < center.lng) orderedPath[3] = c;
+            });
+
             const path = circles.map(c => c.circle.getCenter());
-            if (path) addPolygon({ id: polygonId, area: 0, azimuth: 0, path: path as google.maps.LatLng[] });
+            if (path) addPolygon({ id: polygonId, area: 0, azimuth: 0, path: orderedPath });
             // remove all circles
             circles.forEach(c => c.circle.setMap(null));
             setCircles([]);
@@ -264,3 +289,11 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         </div>
     );
 }
+
+/*
+(32.3201028286985,-64.76289968774572)
+(32.3202290137292,-64.75612572670218)
+(32.31553082586124,-64.75552153814303)
+(32.315162765498194,-64.7626846958499)
+
+*/
