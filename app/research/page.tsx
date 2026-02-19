@@ -9,7 +9,7 @@ export default function ResearchPage() {
                 Although the data used by the solar calculator to predict solar power generation comes from reliable and accurate sources,
                 I am in the process of carrying out research to prove this.
                 Please come back at a later date, as I plan to display the results of my research here.
-                Thank you for you patience.
+                Thank you for your patience.
             </p>
         </div>
     )

@@ -42,7 +42,7 @@ export function getPolygonAzimuth(polygon: google.maps.Polygon) {
 
     if (path.length < 2) return 0;
 
-    const a = google.maps.geometry.spherical.computeArea(path);
+    // const a = google.maps.geometry.spherical.computeArea(path);
     // Use centroid as origin
     let bounds = new google.maps.LatLngBounds();
     path.forEach((p) => bounds.extend(p));

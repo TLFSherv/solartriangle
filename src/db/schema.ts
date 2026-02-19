@@ -4,7 +4,7 @@ import {
     varchar,
     text,
     timestamp,
-    boolean,
+    char,
     integer,
     numeric
 } from 'drizzle-orm/pg-core'
@@ -42,6 +42,7 @@ export const polygons = pgTable('polygons', {
 
 export const addresses = pgTable('addresses', {
     id: uuid('id').primaryKey().defaultRandom(),
+    countryCode: char('countryCode', { length: 2 }).notNull(),
     latitude: varchar('latitude', { length: 50 }).notNull(),
     longitude: varchar('longitude', { length: 50 }).notNull(),
     name: varchar('name', { length: 125 }).notNull().unique()

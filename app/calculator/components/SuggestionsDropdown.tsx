@@ -7,14 +7,14 @@ export default function SuggestionsDropdown(props:
         inputs: FormInputs,
         setInputs: React.Dispatch<React.SetStateAction<FormInputs>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
-        setIsActive: React.Dispatch<React.SetStateAction<boolean>>,
+        setIsActive: React.Dispatch<React.SetStateAction<{ countryInput: boolean; addressInput: boolean }>>,
     }) {
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
     const { inputs, setInputs, suggestions, setSuggestions, setIsActive } = props;
 
     async function selectPlace(placeId: string, text: string) {
         setSuggestions([]);
-        setIsActive(false);
+        setIsActive({ countryInput: false, addressInput: false });
         const response = await fetch(
             `https://places.googleapis.com/v1/places/${placeId}?fields=location&key=${apiKey}`
         );
