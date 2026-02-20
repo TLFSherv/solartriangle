@@ -2,104 +2,138 @@ import 'server-only'
 import db from "../../src/db/connection"
 import { eq, and } from 'drizzle-orm'
 import {
-    users, solarArrays, polygons, addresses,
-    type NewUser, type User, type NewSolarArray, type NewPolygon, type NewAddress,
+    users, solarArrays, polygons, addresses, countries,
+    type NewUser, type Countries, type User
 } from "../../src/db/schema"
+import {
+    type UserData,
+    type UserSolarData,
+    type UserSolarDataUpdate,
+    type UserSolarDataInsert,
+} from './../types/dto'
 import bcrypt from 'bcrypt'
+import z from 'zod'
 
-export async function getUserByEmail(email: string): Promise<User> {
-    const user = await db.select().from(users).where(eq(users.email, email));
-    return user[0];
+type DBResult<T> =
+    | { data: T; error: null }
+    | { data: null; error: { message: string; code?: string } };
+
+export async function selectUserByEmail(email: string): Promise<DBResult<User>> {
+    try {
+        const user = await db.select().from(users).where(eq(users.email, email));
+        return { data: user[0], error: null };
+    } catch (e: any) {
+        return { data: null, error: { message: e.message } };
+    }
 }
 
 // most errors in the login flow would be considered server errors so respond with status 500
-export async function createUser(email: string, password: string) {
-    // hash password before storing it
-    const hashedPassword = await bcrypt.hash(password, 10);
+export async function createUser(email: string, password: string): Promise<DBResult<UserData>> {
+    try {
+        // hash password before storing it
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    const userFields: NewUser = {
-        email,
-        password: hashedPassword,
-        dateCreated: new Date()
-    };
-    // insert the user into the database
-    const data = await db
-        .insert(users)
-        .values(userFields)
-        .returning({ id: users.id, email: users.email });
+        const userData: NewUser = {
+            email,
+            password: hashedPassword,
+            dateCreated: new Date()
+        };
+        // insert the user into the database
+        const result = await db
+            .insert(users)
+            .values(userData)
+            .returning({ id: users.id, email: users.email });
 
-    return data[0];
+        return { data: result[0], error: null };
+    } catch (e: any) {
+        return { data: null, error: { message: e.message } };
+    }
 }
 
-export async function getSolarArrays(userId: string) {
+export async function getUserSolarData(userId: string): Promise<DBResult<UserSolarData[]>> {
     try {
-        const solarArray = await db.select()
+        const result = await db.select()
             .from(solarArrays)
             .innerJoin(polygons, eq(solarArrays.polygonId, polygons.id))
             .innerJoin(addresses, eq(solarArrays.addressId, addresses.id))
+            .innerJoin(countries, eq(addresses.countryCode, countries.code))
             .where(eq(solarArrays.userId, userId));
-        return { success: true, data: solarArray };
+
+        return { data: result, error: null };
     } catch (e) {
-        return { sucess: false, data: null }
+        return { data: null, error: { message: "error selecting data" } };
     }
 }
 
-export async function dbUpdate(userId: string, solarArray: NewSolarArray, polygon: NewPolygon) {
+export async function updateUserSolarData(input: UserSolarDataUpdate):
+    Promise<DBResult<string>> {
     try {
-        return await db.transaction(async (tx) => {
+        const result = await db.transaction(async (tx) => {
             const [polygonId] = await tx.update(solarArrays)
-                .set({ ...solarArray })
-                .where(and(eq(solarArrays.id, solarArray.id as string), eq(solarArrays.userId, userId)))
+                .set({ ...input.solarArray })
+                .where(and(eq(solarArrays.id, input.solarArray.id as string),
+                    eq(solarArrays.userId, input.solarArray.userId as string)))
                 .returning({ polygonId: solarArrays.polygonId });
 
-            console.log(solarArray.id, userId);
-            console.log(polygonId);
-
             await tx.update(polygons)
-                .set(polygon)
-                .where(eq(polygons.id, polygonId.polygonId as string))
-                .returning({ id: polygons.id });
-
-            return { success: true, message: "data updated successfully", error: "" };
+                .set(input.polygon)
+                .where(eq(polygons.id, polygonId.polygonId as string));
+            return polygonId
         });
+        return { data: result.polygonId as string, error: null };
     } catch (e: any) {
-        return { success: false, message: "data failed to update", error: e.message };
+        return { data: null, error: { message: e.message } };
     }
 }
 
-export async function dbInsert(solarArray: NewSolarArray, polygon: NewPolygon, address: NewAddress) {
+export async function insertUserSolarData
+    (input: UserSolarDataInsert): Promise<DBResult<string>> {
     try {
-        await db.transaction((async (tx) => {
+        const result = await db.transaction((async (tx) => {
             const [polygonId] = await tx.insert(polygons)
-                .values(polygon)
+                .values(input.polygon)
                 .returning({ id: polygons.id });
 
             const [addressId] = await tx.insert(addresses)
-                .values(address)
+                .values(input.address)
                 .returning({ id: addresses.id })
                 .onConflictDoUpdate({
                     target: addresses.name,
-                    set: { ...address }
+                    set: { ...input.address }
                 });
-
-            await tx.insert(solarArrays)
-                .values({ ...solarArray, polygonId: polygonId.id, addressId: addressId.id })
+            const [solarArrayId] = await tx.insert(solarArrays)
+                .values({ ...input.solarArray, polygonId: polygonId.id, addressId: addressId.id })
                 .returning({ id: solarArrays.id });
+            return solarArrayId;
         }))
-        return { success: true, message: "data saved successfully", error: "" };
+        return { data: result.id, error: null };
     } catch (e: any) {
-        return { success: false, message: "data failed to save", error: e.message };
+        return { data: null, error: { message: e.message } };
     }
 }
 
-export async function dbDelete(id: string, userId: string) {
+export async function deleteUserSolarData(solarArrayId: string, userId: string): Promise<DBResult<string[]>> {
     try {
         const result = await db.delete(solarArrays)
-            .where(and(eq(solarArrays.id, id), eq(solarArrays.userId, userId)))
+            .where(and(eq(solarArrays.id, solarArrayId),
+                eq(solarArrays.userId, userId)))
             .returning({ id: solarArrays.id });
-        return { success: true, data: "data deleted successfully", error: "" };
+        const resultArray = result.map(({ id }) => id);
+        return { data: resultArray, error: null };
     } catch (e: any) {
-        return { success: false, data: null, error: e.message }
+        return { data: null, error: { message: e.message } };
+    }
+}
+
+export async function getCountries(): Promise<DBResult<Countries[]>> {
+    try {
+        const result = await db
+            .select()
+            .from(countries);
+        return { data: result, error: null };
+
+    } catch (e: any) {
+        return { data: null, error: { message: e.message } };
     }
 }
 

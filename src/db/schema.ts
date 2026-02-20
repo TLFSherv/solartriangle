@@ -42,11 +42,22 @@ export const polygons = pgTable('polygons', {
 
 export const addresses = pgTable('addresses', {
     id: uuid('id').primaryKey().defaultRandom(),
-    countryCode: char('countryCode', { length: 2 }).notNull(),
+    countryCode: char('countryCode', { length: 2 }).notNull().references(() => countries.code),
     latitude: varchar('latitude', { length: 50 }).notNull(),
     longitude: varchar('longitude', { length: 50 }).notNull(),
     name: varchar('name', { length: 125 }).notNull().unique()
 })
+
+export const countries = pgTable('countries', {
+    code: char('code', { length: 2 }).primaryKey(),
+    name: varchar('name', { length: 57 }).notNull(),
+    latitude: varchar('latitude', { length: 50 }).notNull(),
+    longitude: varchar('longitude', { length: 50 }).notNull()
+})
+
+export const addressRelations = relations(addresses, ({ one }) => ({
+    countries: one(countries)
+}))
 
 export const userRelations = relations(users, ({ many }) => ({
     solarArrays: many(solarArrays)
@@ -77,6 +88,7 @@ export type Polygon = typeof polygons.$inferSelect
 export type NewPolygon = typeof polygons.$inferInsert
 export type Address = typeof addresses.$inferSelect
 export type NewAddress = typeof addresses.$inferInsert
+export type Countries = typeof countries.$inferSelect
 
 export const insertUserSchema = createInsertSchema(users)
 export const selectUserSchema = createSelectSchema(users)
