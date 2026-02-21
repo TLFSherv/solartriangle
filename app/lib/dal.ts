@@ -18,7 +18,7 @@ type DBResult<T> =
     | { data: T; error: null }
     | { data: null; error: { message: string; code?: string } };
 
-export async function selectUserByEmail(email: string): Promise<DBResult<User>> {
+export async function getUserByEmail(email: string): Promise<DBResult<User>> {
     try {
         const user = await db.select().from(users).where(eq(users.email, email));
         return { data: user[0], error: null };

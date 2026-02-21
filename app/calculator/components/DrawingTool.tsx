@@ -5,7 +5,7 @@ import undo from '../../../public/undo.png'
 import erase from '../../../public/eraser.png'
 import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
 import { FormInputs, SolarArray } from "@/app/types/types";
-import { readInputsFromDb } from "@/actions/data";
+import { getCalculatorData } from "@/actions/data";
 
 type Polygon = {
     id: number;
@@ -156,7 +156,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
     // init polygons on map load
     useEffect(() => {
         const initMap = async () => {
-            const { data } = await readInputsFromDb();
+            const { data } = await getCalculatorData();
             if (!map || !data || mapInitialised.current) return
 
             // add polygons to map

@@ -43,7 +43,8 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             }
 
         const user = await getUserByEmail(data.email);
-        if (!user) {
+
+        if (!user.data) {
             return {
                 success: false,
                 message: 'Invalid email or password',
@@ -53,7 +54,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             }
         }
         // verify password
-        const isPasswordValid = await bcrypt.compare(data.password, user.password);
+        const isPasswordValid = await bcrypt.compare(data.password, user.data.password);
 
         if (!isPasswordValid) {
             return {
@@ -65,7 +66,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
             }
         }
 
-        await createSession(user.id, user.email);
+        await createSession(user.data.id, user.data.email);
 
         return {
             success: true,
@@ -114,7 +115,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
 
         // Create new user
         const user = await createUser(data.email, data.password)
-        if (!user) {
+        if (!user.data) {
             return {
                 success: false,
                 message: 'Failed to create user',
@@ -123,7 +124,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
         }
 
         // Create the session for the newly registered user
-        await createSession(user.id, user.email);
+        await createSession(user.data.id, user.data.email);
 
         return {
             success: true,

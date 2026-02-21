@@ -5,35 +5,36 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { storeInputsInCache, readInputsFromDb, storeInputsInDb } from "@/actions/data";
+import { isLoggedIn, cacheCalculatorData, getCalculatorData, setCalculatorData } from "@/actions/data";
 import { type FormInputs } from "@/app/types/types";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function Calculator() {
-    const initInputs: FormInputs = {
-        address: '',
-        location: null,
-        solarArrays: [],
-    };
     enum FormStatus { Success, Error, Pending };
-    const [inputs, setInputs] = useState<FormInputs>(initInputs);
+    const [inputs, setInputs] = useState<FormInputs>({ address: '', location: null, solarArrays: [] });
     const [status, setStatus] = useState<{ value: FormStatus; details: any; }>();
     const [activeId, setActiveId] = useState(1);
     const [isAuth, setIsAuth] = useState(false);
     const router = useRouter();
-    useEffect(() => {
-        // check cache or database for data and populate the form
-        const initForm = async () => {
-            const { isAuth, data } = await readInputsFromDb();
 
-            setIsAuth(isAuth);
-            if (!data) return
-            const storedInputs: FormInputs = {
+    useEffect(() => {
+        // check cache or database for data and pre-populate the form
+        const initForm = async () => {
+            const authResult = await isLoggedIn();
+            if (authResult.data) setIsAuth(authResult.data);
+
+            const { data } = await getCalculatorData();
+            if (!data) return;
+
+            const intputData: FormInputs = {
                 address: data.address,
-                location: { lat: parseFloat(data.lat), lng: parseFloat(data.lng) },
                 solarArrays: data.solarArrays,
+                location: {
+                    lat: parseFloat(data.lat),
+                    lng: parseFloat(data.lng)
+                }
             }
-            setInputs(storedInputs);
+            setInputs(intputData);
         }
         initForm();
     }, []);
@@ -54,38 +55,36 @@ export default function Calculator() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setStatus({ value: FormStatus.Pending, details: 'Form submission started' });
-        const formData = {
-            address: inputs.address,
-            lat: String(inputs.location?.lat || ""),
-            lng: String(inputs.location?.lng || ""),
-            solarArrays: inputs.solarArrays
+        const { address, location, solarArrays } = inputs;
+        const latLng = {
+            lat: String(location?.lat),
+            lng: String(location?.lng),
         };
-        const cacheResult = await storeInputsInCache(formData)
+        const result = await cacheCalculatorData({ address, solarArrays, ...latLng });
 
-        if (cacheResult.success) {
-            // navigate to dashboard
-            router.push('/dashboard');
-        } else {
-            toast.error('Error')
-            // let user know there was an error
+        // display error
+        if (result.error) {
+            toast.error('Error');
             setStatus({
-                value: cacheResult.success ? FormStatus.Success : FormStatus.Error,
-                details: cacheResult.details
-            })
+                value: result.error ? FormStatus.Success : FormStatus.Error,
+                details: result.error.message
+            });
         }
+        else router.push('/dashboard');  // navigate to dashboard 
     }
 
     const handleSave = async () => {
-        const lat = inputs.location?.lat.toString() || "";
-        const lng = inputs.location?.lng.toString() || "";
+        const { location, address, solarArrays } = inputs;
+        const lat = location?.lat.toString() as string;
+        const lng = location?.lng.toString() as string;
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
-        const result = await storeInputsInDb(inputs.address, lat, lng, inputs.solarArrays);
+        const result = await setCalculatorData({ address, lat, lng, solarArrays });
 
-        if (!result.success) toast.error('Failed to save');
+        if (result.error) toast.error('Failed to save');
         else toast.success('Save successful');
         setStatus({
-            value: result.success ? FormStatus.Success : FormStatus.Error,
-            details: result.details
+            value: result.data ? FormStatus.Success : FormStatus.Error,
+            details: result.error?.message
         });
     }
 
