@@ -1,5 +1,5 @@
 "use client"
-import React from "react";
+import React, { useEffect } from "react";
 import { CalculatorData } from "@/app/types/types"
 
 export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveId }: {
@@ -10,9 +10,12 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
 }) {
     const { solarArrays } = inputs;
     let isEmpty = solarArrays.length === 0;
-    let activeIndex: number;
-    if (isEmpty) activeIndex = 0;
-    else activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
+    let activeIndex = 0;
+
+    useEffect(() => {
+        if (isEmpty) activeIndex = 0;
+        else activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
+    }, [activeId])
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         let name = e.target.name;
@@ -23,8 +26,8 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
             let panelCountEstimate = (solarArrays[activeIndex].area || 0) / 2.34;
             const newSolarArrays = {
                 ...solarArrays[activeIndex],
-                numberOfPanels: Math.round(panelCountEstimate),
-                areaToPanels: e.target.checked
+                quantity: Math.round(panelCountEstimate),
+                areaToQuantity: e.target.checked
             }
             setInputs(prev => ({
                 ...prev,

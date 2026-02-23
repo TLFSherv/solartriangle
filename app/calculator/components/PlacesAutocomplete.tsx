@@ -28,6 +28,10 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
     }, [countryData.join(",")])
 
     useEffect(() => {
+        setCountryRaw(location.country);
+    }, [location.country])
+
+    useEffect(() => {
         // debouce search string
         if (!address || address.trim().length === 0
             || address === debouncedString) return;
@@ -60,7 +64,6 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
 
     // fetch auto-suggestion results
     useEffect(() => {
-        console.log(location.countryCode, location.countryCoords);
         if (!debouncedString || !isActive) return;
         async function getAutocompleteResults(input: string) {
             if (!input) return setSuggestions([]);
@@ -130,7 +133,8 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
                 ...prev.location,
                 countryCode: selectedCountry.code,
                 country: selectedCountry.name,
-                countryCoords
+                countryCoords,
+                timeZone: selectedCountry.timeZone
             }
         }));
         setIsActive({ countryInput: false, addressInput: false });

@@ -75,7 +75,6 @@ export default function Calculator() {
         const result = await cacheCalculatorData(inputs);
         // display error
         if (result.error) {
-            console.log(result.error.message);
             toast.error('Error generating dashboard');
             setStatus({
                 value: result.error ? FormStatus.Success : FormStatus.Error,
@@ -125,8 +124,7 @@ export default function Calculator() {
                 inputs={inputs}
                 setInputs={setInputs}
                 activeId={activeId}
-                setActiveId={setActiveId}
-            />
+                setActiveId={setActiveId} />
             <div className="flex flex-col items-center justify-center sm:text-lg space-y-3 sm:text-xl">
                 {(status?.value === FormStatus.Error) &&
                     (status?.details?.fieldErrors?.address || status?.details?.fieldErrors?.solarArrays)
