@@ -8,9 +8,10 @@ import { $ZodError } from "zod/v4/core";
 import { verifySession } from "@/app/lib/session";
 import {
     insertPolygonSchema, insertSolarArraySchema,
-    type NewSolarArray, type NewPolygon, type NewAddress
+    type NewSolarArray, type NewPolygon, type NewAddress,
+    type NewCountry, type Country
 } from "../src/db/schema";
-import { getUserSolarData, updateUserSolarData, insertUserSolarData, deleteUserSolarData } from "@/app/lib/dal";
+import { getUserSolarData, updateUserSolarData, insertUserSolarData, deleteUserSolarData, getCountries } from "@/app/lib/dal";
 import { rateLimiter } from '@/app/lib/rate-limiter'
 import { RateLimiterRes } from "rate-limiter-flexible";
 import { getPVWattsData, getOpenMetoData } from "@/services/api";
@@ -18,22 +19,35 @@ import { type CalculatorData } from "@/app/types/types";
 import { type UserSolarData } from "@/app/types/dto";
 
 const calculatorSchema = z.object({
-    address: z.string().nonempty("no address"),
-    lat: z.string().nonempty("no latitude"),
-    lng: z.string().nonempty("no longitude"),
+    location: z.object({
+        country: z.string().nonempty("no country"),
+        countryCode: z.string().nonempty("no country code"),
+        countryCoords: z.object({
+            lat: z.float32().nonoptional(),
+            lng: z.float32().nonoptional(),
+        }),
+        timeZone: z.string().nonempty("no time zone"),
+        address: z.string().nonempty("no address"),
+        addressCoords: z.object({
+            lat: z.float32().nonoptional(),
+            lng: z.float32().nonoptional(),
+        })
+    }),
     solarArrays: z.array(z.object({
         id: z.number(),
-        solarCapacity: z.number().min(1),
-        numberOfPanels: z.number().min(1),
+        capacity: z.number().min(1),
+        quantity: z.number().min(1),
         area: z.number().min(1).max(1000),
         azimuth: z.number().min(1),
-        shape: z.array(z.object({ lat: z.number(), lng: z.number() }))
+        shape: z.array(z.object({ lat: z.number(), lng: z.number() })),
+        areaToQuantity: z.boolean().optional()
     })).min(1)
 })
 type DbData = {
     solarArrays: NewSolarArray;
     polygons: NewPolygon;
-    addresses: NewAddress
+    addresses: NewAddress;
+    countries: NewCountry;
 };
 
 type fieldErrors = {
@@ -59,14 +73,15 @@ export async function getDashboardData(input: CalculatorData):
 
         // rate limit passed
         let dashboardData: any[] = []
-        for (const sa of input.solarArrays) {
+        for (const { capacity, quantity, azimuth } of input.solarArrays) {
             const apiInputs = {
-                lat: input.lat,
-                lng: input.lng,
-                capacity: (sa.solarCapacity * sa.numberOfPanels) / 1000, // kW
-                quantity: sa.numberOfPanels,
-                azimuth: sa.azimuth,
-                tilt: 30
+                lat: input.location.addressCoords.lat.toString(),
+                lng: input.location.addressCoords.lng.toString(),
+                capacity: (capacity * quantity) / 1000, // kW
+                quantity,
+                azimuth,
+                tilt: 30,
+                timeZone: input.location.timeZone
             };
             const pvwatts = await getPVWattsData(apiInputs);
             const openmeteo = await getOpenMetoData(apiInputs);
@@ -157,6 +172,35 @@ export async function isLoggedIn(): Promise<DataResult<boolean>> {
 
 }
 
+export async function getCountryData(): Promise<DataResult<Country[]>> {
+    try {
+        let countryData: Country[];
+
+        // retrieve country data from cache
+        const key = 'countryDropdownData';
+        const isDataInCache = await myRedisClient?.exists(key);
+        if (isDataInCache && isDataInCache > 0) {
+            let data = await myRedisClient?.get(key);
+
+            if (!data) throw new Error("Error reading from cache");
+            countryData = JSON.parse(data);
+            return { data: countryData, error: null };
+        }
+
+        // get country data from database
+        let result = await getCountries();
+        if (result.error) throw new Error(result.error.message);
+        countryData = result.data as Country[];
+
+        // store data in cache
+        await myRedisClient?.setEx(key, 1800, JSON.stringify(countryData));
+        return { data: countryData, error: null }
+
+    } catch (e: any) {
+        return { data: null, error: { message: e.message } };
+    }
+}
+
 // Store input data from calculator page in Redis
 export async function cacheCalculatorData(input: CalculatorData) {
     try {
@@ -185,27 +229,36 @@ export async function cacheCalculatorData(input: CalculatorData) {
 
 // Format data from database to be displayed on calculator page
 function formatData(input: DbData[]): CalculatorData {
-    const newSolarArrays = input.map(({ polygons, solarArrays }) => {
+    const solarArrays = input.map(({ polygons, solarArrays }) => {
         const path = JSON.parse(polygons.coords);
         return {
             id: parseInt(solarArrays.name),
-            solarCapacity: solarArrays.capacity,
-            numberOfPanels: solarArrays.quantity as number,
+            capacity: solarArrays.capacity,
+            quantity: solarArrays.quantity as number,
             area: parseInt(polygons.area as string),
             azimuth: parseInt(polygons.azimuth as string),
             shape: path,
-            areaToPanels: false
+            areaToQuantity: false
         }
     });
 
-    const { name, latitude, longitude } = input[0].addresses;
+    const { countries, addresses } = input[0];
+    const location = {
+        country: countries.name,
+        countryCode: countries.code,
+        countryCoords: {
+            lat: parseFloat(countries.latitude),
+            lng: parseFloat(countries.longitude),
+        },
+        timeZone: countries.timeZone,
+        address: addresses.name,
+        addressCoords: {
+            lat: parseFloat(addresses.latitude),
+            lng: parseFloat(addresses.longitude),
+        }
+    };
 
-    return {
-        address: name,
-        lat: latitude,
-        lng: longitude,
-        solarArrays: newSolarArrays
-    }
+    return { location, solarArrays }
 }
 
 // Get input data from database if user has an account
@@ -230,9 +283,8 @@ export async function getCalculatorData(): Promise<DataResult<CalculatorData | n
         const result = await getCachedCalculatorData();
         if (result.error) throw Error(result.error.message);
 
-        const { address, lat, lng, solarArrays } = result.data;
         return {
-            data: { address, lat, lng, solarArrays },
+            data: result.data,
             error: null
         }
     } catch (e: any) {
@@ -292,8 +344,8 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
             const solarArray: NewSolarArray = {
                 ...currSolarArrayData,
                 name: sa.id.toString(),
-                capacity: sa.solarCapacity,
-                quantity: sa.numberOfPanels,
+                capacity: sa.capacity,
+                quantity: sa.quantity,
                 userId: userId,
                 lastModified: new Date(),
             }
@@ -304,10 +356,10 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
                 numberOfPoints: sa.shape.length
             }
             const address: NewAddress = {
-                name: input.address,
-                latitude: input.lat,
-                longitude: input.lng,
-                countryCode: ""
+                name: input.location.address,
+                latitude: input.location.addressCoords.lat.toString(),
+                longitude: input.location.addressCoords.lng.toString(),
+                countryCode: input.location.countryCode,
             }
 
             const polygonValidation = z.safeParse(insertPolygonSchema, polygon);

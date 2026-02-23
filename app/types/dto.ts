@@ -1,6 +1,6 @@
 import {
     type NewSolarArray, type NewPolygon, type NewAddress,
-    type SolarArray, type Polygon, type Address, type Countries
+    type SolarArray, type Polygon, type Address, type Country
 } from "../../src/db/schema"
 
 export type UserData = {
@@ -12,7 +12,7 @@ export type UserSolarData = {
     solarArrays: SolarArray;
     polygons: Polygon
     addresses: Address;
-    countries: Countries;
+    countries: Country;
 };
 
 export type UserSolarDataUpdate = {

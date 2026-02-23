@@ -2,18 +2,28 @@
 import React from "react";
 import { type CalculatorData } from "@/app/types/types"
 
-const initialState = { address: '', lat: '', lng: '', solarArrays: [] };
-export const CalculatorContext = React.createContext<CalculatorData>(initialState);
+const initState: CalculatorData = {
+    solarArrays: [],
+    location: {
+        country: "Bermuda",
+        countryCode: "bm",
+        countryCoords: { lat: 32.3078, lng: -64.7505 },
+        timeZone: "GMT-4",
+        address: "",
+        addressCoords: { lat: 0, lng: 0 }
+    }
+}
+export const CalculatorContext = React.createContext<CalculatorData>(initState);
 
 export function CalculatorProvider({
     children,
-    cacheData }:
+    cachedCaclulatorData }:
     {
         children: React.ReactNode,
-        cacheData: CalculatorData
+        cachedCaclulatorData: CalculatorData
     }) {
     return (
-        <CalculatorContext.Provider value={cacheData}>
+        <CalculatorContext.Provider value={cachedCaclulatorData}>
             {children}
         </CalculatorContext.Provider>
     )

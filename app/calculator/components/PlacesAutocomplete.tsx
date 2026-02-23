@@ -1,29 +1,31 @@
-import React, { useState, useEffect, useRef, ReactEventHandler } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
-import { FormInputs, Suggestion } from "@/app/types/types";
+import { LocationData, CalculatorData, Suggestion } from "@/app/types/types";
+import { Country } from '@/src/db/schema';
 
-type Countries = "Bermuda" | "Nigeria" | "United Kingdom";
-type CountryCodes = "bm" | "ng" | "uk";
-const PlacesAutocomplete = (props:
+const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
     {
-        inputs: FormInputs,
-        setInputs: React.Dispatch<React.SetStateAction<FormInputs>>,
+        location: LocationData,
+        setInputs: React.Dispatch<React.SetStateAction<CalculatorData>>,
         handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+        countryData: Country[]
     }) => {
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [isActive, setIsActive] = useState({ countryInput: false, addressInput: false });
-    const [country, setCountry] = useState<string>();
-    const [availableCountries, setAvailableCountries] = useState<Countries[]>(["Bermuda", "Nigeria", "United Kingdom"]);
+    const [countryRaw, setCountryRaw] = useState<string>(location.country);
+    const [countryDropdown, setCountryDropdown] = useState<string[]>();
     const searchContainer = useRef<HTMLDivElement>(null);
-    const { address, location } = props.inputs;
+    const { address, addressCoords } = location;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-    const countryMap = new Map<Countries, CountryCodes>()
-    countryMap.set("Bermuda", "bm");
-    countryMap.set("Nigeria", "ng");
-    countryMap.set("United Kingdom", "uk");
+    const countryMapRef = useRef<Map<string, Country>>(new Map<string, Country>());
+
+    useEffect(() => {
+        countryData.forEach(data => countryMapRef.current.set(data.name, data));
+        setCountryDropdown(countryMapRef.current.keys().toArray());
+    }, [countryData.join(",")])
 
     useEffect(() => {
         // debouce search string
@@ -39,11 +41,11 @@ const PlacesAutocomplete = (props:
 
     useEffect(() => {
         // Pan map using the map instance
-        if (location) {
-            map?.panTo(location);
+        if (addressCoords) {
+            map?.panTo(addressCoords);
             map?.setZoom(18);
         }
-    }, [location])
+    }, [addressCoords])
 
     // hide suggestions when you click outside suggestions box
     useEffect(() => {
@@ -58,19 +60,13 @@ const PlacesAutocomplete = (props:
 
     // fetch auto-suggestion results
     useEffect(() => {
+        console.log(location.countryCode, location.countryCoords);
         if (!debouncedString || !isActive) return;
         async function getAutocompleteResults(input: string) {
             if (!input) return setSuggestions([]);
-            const countryCenters: { [key: string]: { latitude: number; longitude: number } } = {
-                bm: { latitude: 32.3078, longitude: -64.7505 },
-                ng: { latitude: 9.05785, longitude: 7.49508 }
-            };
-            let regionCode = "bm";
-            if (country && countryMap.has(country as Countries)) {
-                regionCode = countryMap.get(country as Countries) as string;
-            }
+
             const response = await fetch(
-                `https://places.googleapis.com/v1/places:autocomplete`,
+                "https://places.googleapis.com/v1/places:autocomplete",
                 {
                     method: 'POST',
                     headers: {
@@ -79,10 +75,13 @@ const PlacesAutocomplete = (props:
                     },
                     body: JSON.stringify({
                         input,
-                        regionCode,
+                        regionCode: location.countryCode,
                         locationRestriction: {
                             circle: {
-                                center: countryCenters[regionCode],
+                                center: {
+                                    latitude: location.countryCoords.lat,
+                                    longitude: location.countryCoords.lng
+                                },
                                 radius: 20000
                             }
                         },
@@ -100,75 +99,94 @@ const PlacesAutocomplete = (props:
     function handleCountryChange(e: React.ChangeEvent<HTMLInputElement>) {
         let value = e.target.value.toLowerCase();
         value = value.split(" ").map(val => [val.charAt(0).toUpperCase() + val.slice(1)]).join(" ");
-        const closeValues: Countries[] = [];
-        const diffValues: Countries[] = [];
-        for (let [country, _] of countryMap) {
-            if (country.startsWith(value) || country.includes(value)) {
-                closeValues.push(country);
+        const simillarValues: string[] = [];
+        const diffValues: string[] = [];
+        for (let [key, _] of countryMapRef.current) {
+            if (key.startsWith(value) || key.includes(value)) {
+                simillarValues.push(key);
             } else {
-                diffValues.push(country);
+                diffValues.push(key);
             }
         }
-        setAvailableCountries(closeValues.concat(diffValues));
-        setCountry(value);
+        setCountryRaw(value);
+        if (countryMapRef.current.has(value)) {
+            handleCountrySelect(value);
+            return
+        }
+        setCountryDropdown(simillarValues.concat(diffValues));
         setIsActive({ countryInput: true, addressInput: false });
     }
-
-    function handleCountrySelect(country: Countries) {
-        setCountry(country);
+    function handleCountrySelect(name: string) {
+        const selectedCountry = countryMapRef.current.get(name);
+        if (!selectedCountry) return
+        setCountryRaw(name);
+        const countryCoords = {
+            lat: parseFloat(selectedCountry.latitude),
+            lng: parseFloat(selectedCountry.longitude)
+        };
+        setInputs((prev) => ({
+            ...prev,
+            location: {
+                ...prev.location,
+                countryCode: selectedCountry.code,
+                country: selectedCountry.name,
+                countryCoords
+            }
+        }));
         setIsActive({ countryInput: false, addressInput: false });
+        map?.setCenter(countryCoords);
     }
+
     return (
         <>
-            <AdvancedMarker key={address} position={location} />
-            <div
-                ref={searchContainer}
-                className="mb-10 sm:mb-14 flex flex-col justify-center items-center mx-auto max-w-xl space-y-4">
-                <div className='space-x-2 w-full'>
-                    <label className='hidden sm:inline'>
-                        Country
+            <AdvancedMarker key={address} position={addressCoords} />
+            <div ref={searchContainer} className="mb-10 sm:mb-14 mx-auto max-w-xl space-y-4">
+                <div className='w-full flex flex-col justify-center items-center'>
+                    <label className='w-full space-x-2'>
+                        <span className='hidden sm:inline'>Country</span>
+                        <input
+                            value={countryRaw}
+                            onChange={handleCountryChange}
+                            placeholder='Country'
+                            onFocus={() => setIsActive({ countryInput: true, addressInput: false })}
+                            name="country"
+                            className={`py-1 px-2 border-2 border-[#444444] rounded-md h-9 sm:h-10 w-full sm:w-4/5 ${countryMapRef.current.has(countryRaw) && "border-[#FF8D28]"}`}
+                            type="text"
+                            autoComplete="off" />
                     </label>
-                    <input
-                        value={country}
-                        onChange={handleCountryChange}
-                        placeholder='Country'
-                        onFocus={() => setIsActive({ countryInput: true, addressInput: false })}
-                        name="address"
-                        className={`py-1 px-2 border-2 border-[#444444] rounded-md w-full sm:w-4/5 h-9 sm:h-10 ${countryMap.has(country as Countries) && "border-[#FF8D28]"}`}
-                        type="text"
-                        autoComplete="off" />
                     {isActive.countryInput &&
-                        <ul className="text-sm divide-y divide-[#444444] sm:mx-4 w-full text-[#F2F2F0]">
-                            {availableCountries.map((country) =>
-                                <li className="cursor-pointer p-2 hover:bg-[#131314]"
-                                    onClick={() => handleCountrySelect(country)}>{country}</li>
+                        <ul className="col-start-2 text-sm mx-4 divide-y divide-[#444444] text-[#F2F2F0] w-full sm:w-4/5">
+                            {countryDropdown?.map((name) =>
+                                <li key={name}
+                                    className="cursor-pointer p-2 hover:bg-[#131314]"
+                                    onClick={() => handleCountrySelect(name)}>{name}</li>
                             )}
                         </ul>
                     }
                 </div>
-                <div className='space-x-2 w-full'>
-                    <label className='hidden sm:inline'>
-                        Address
+                <div className='w-full flex flex-col justify-center items-center'>
+                    <label className='w-full space-x-2'>
+                        <span className='hidden sm:inline'>Address</span>
+                        <input
+                            value={address}
+                            placeholder='Address'
+                            onChange={handleChange}
+                            onFocus={() => setIsActive({ countryInput: false, addressInput: true })}
+                            name="address"
+                            className="py-1 px-2 border-2 border-[#444444] rounded-md w-full sm:w-4/5 h-9 sm:h-10"
+                            type="text"
+                            autoComplete="off" />
                     </label>
-                    <input
-                        value={address}
-                        placeholder='Address'
-                        onChange={props.handleChange}
-                        onFocus={() => setIsActive({ countryInput: false, addressInput: true })}
-                        name="address"
-                        className="py-1 px-2 border-2 border-[#444444] rounded-md w-full sm:w-4/5 h-9 sm:h-10"
-                        type="text"
-                        autoComplete="off" />
+                    {isActive.addressInput && suggestions.length > 0 && (
+                        <SuggestionsDropdown
+                            suggestions={suggestions}
+                            location={location}
+                            setInputs={setInputs}
+                            setSuggestions={setSuggestions}
+                            setIsActive={setIsActive}
+                        />
+                    )}
                 </div>
-                {isActive && suggestions.length > 0 && (
-                    <SuggestionsDropdown
-                        suggestions={suggestions}
-                        inputs={props.inputs}
-                        setInputs={props.setInputs}
-                        setSuggestions={setSuggestions}
-                        setIsActive={setIsActive}
-                    />
-                )}
             </div>
         </>
     )

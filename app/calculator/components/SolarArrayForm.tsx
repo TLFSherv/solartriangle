@@ -1,10 +1,10 @@
 "use client"
 import React from "react";
-import { FormInputs } from "@/app/types/types"
+import { CalculatorData } from "@/app/types/types"
 
 export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveId }: {
-    inputs: FormInputs,
-    setInputs: React.Dispatch<React.SetStateAction<FormInputs>>
+    inputs: CalculatorData,
+    setInputs: React.Dispatch<React.SetStateAction<CalculatorData>>
     activeId: number,
     setActiveId: React.Dispatch<React.SetStateAction<number>>
 }) {
@@ -18,7 +18,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
         let name = e.target.name;
         let value = e.target.value;
 
-        if (name === 'areaToPanels' && e.target.checked) {
+        if (name === 'areaToQuantity' && e.target.checked) {
             // area of a panel is 1.8m2 also include 30% buffer
             let panelCountEstimate = (solarArrays[activeIndex].area || 0) / 2.34;
             const newSolarArrays = {
@@ -62,8 +62,8 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             Solar capacity
                         </label>
                         <input
-                            name="solarCapacity"
-                            value={solarArrays[activeIndex]?.solarCapacity ?? 0}
+                            name="capacity"
+                            value={solarArrays[activeIndex]?.capacity ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
@@ -78,8 +78,8 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             Panel count
                         </label>
                         <input
-                            name="numberOfPanels"
-                            value={solarArrays[activeIndex]?.numberOfPanels ?? 0}
+                            name="quantity"
+                            value={solarArrays[activeIndex]?.quantity ?? 0}
                             onChange={handleChange}
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
                             type="number"
@@ -123,9 +123,9 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         <input
                             className="accent-black"
                             type="checkbox"
-                            name="areaToPanels"
+                            name="areaToQuantity"
                             onChange={handleChange}
-                            checked={solarArrays[activeIndex]?.areaToPanels || false}
+                            checked={solarArrays[activeIndex]?.areaToQuantity || false}
                             disabled={isEmpty} />
                         <label className="">Use area to estimate number of panels</label>
                     </div>

@@ -17,8 +17,8 @@ export default function GoogleMap({ dataColors }: { dataColors: string[] }) {
                     style={{ width: '100%', height: '400px' }}
                     defaultZoom={20}
                     defaultCenter={{
-                        lat: parseFloat(calculatorData.lat),
-                        lng: parseFloat(calculatorData.lng)
+                        lat: calculatorData.location.addressCoords.lat,
+                        lng: calculatorData.location.addressCoords.lng
                     }}
                     mapId={'f0d837b3785689636fe8a7cc'}
                 >

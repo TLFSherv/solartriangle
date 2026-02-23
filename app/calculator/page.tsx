@@ -5,38 +5,49 @@ import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
 import DrawingTool from './components/DrawingTool';
 import SolarArrayForm from "./components/SolarArrayForm";
-import { isLoggedIn, cacheCalculatorData, getCalculatorData, setCalculatorData } from "@/actions/data";
-import { type FormInputs } from "@/app/types/types";
+import { isLoggedIn, cacheCalculatorData, getCalculatorData, setCalculatorData, getCountryData } from "@/actions/data";
+import { type CalculatorData } from "@/app/types/types";
+import { type Country } from "@/src/db/schema";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function Calculator() {
     enum FormStatus { Success, Error, Pending };
-    const [inputs, setInputs] = useState<FormInputs>({ address: '', location: null, solarArrays: [] });
+    const initInputData: CalculatorData = {
+        solarArrays: [],
+        location: {
+            country: "Bermuda",
+            countryCode: "bm",
+            countryCoords: { lat: 32.3078, lng: -64.7505 },
+            timeZone: "GMT-4",
+            address: "",
+            addressCoords: { lat: 0, lng: 0 }
+        }
+    }
+    const [inputs, setInputs] = useState<CalculatorData>(initInputData);
     const [status, setStatus] = useState<{ value: FormStatus; details: any; }>();
     const [activeId, setActiveId] = useState(1);
     const [isAuth, setIsAuth] = useState(false);
+    const [countryData, setCountryData] = useState<Country[]>([]);
     const router = useRouter();
 
     useEffect(() => {
-        // check cache or database for data and pre-populate the form
-        const initForm = async () => {
+        const initPage = async () => {
+            // change page if user is logged in
             const authResult = await isLoggedIn();
             if (authResult.data) setIsAuth(authResult.data);
 
-            const { data } = await getCalculatorData();
-            if (!data) return;
+            // get country data for country dropdown
+            const countryResult = await getCountryData();
+            if (countryResult.data) setCountryData(countryResult.data);
+            else toast.error("Error with country dropdown");
 
-            const intputData: FormInputs = {
-                address: data.address,
-                solarArrays: data.solarArrays,
-                location: {
-                    lat: parseFloat(data.lat),
-                    lng: parseFloat(data.lng)
-                }
-            }
-            setInputs(intputData);
+            // check cache or database for data and pre-populate the form
+            const dataResult = await getCalculatorData();
+
+            if (!dataResult.data) return;
+            setInputs(dataResult.data);
         }
-        initForm();
+        initPage();
     }, []);
 
     useEffect(() => {
@@ -49,22 +60,23 @@ export default function Calculator() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.name;
         const value = e.target.value;
-        setInputs(prev => ({ ...prev, [name]: value }));
+        setInputs((prev) => ({
+            ...prev,
+            location: {
+                ...prev.location,
+                [name]: value
+            }
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setStatus({ value: FormStatus.Pending, details: 'Form submission started' });
-        const { address, location, solarArrays } = inputs;
-        const latLng = {
-            lat: String(location?.lat),
-            lng: String(location?.lng),
-        };
-        const result = await cacheCalculatorData({ address, solarArrays, ...latLng });
-
+        const result = await cacheCalculatorData(inputs);
         // display error
         if (result.error) {
-            toast.error('Error');
+            console.log(result.error.message);
+            toast.error('Error generating dashboard');
             setStatus({
                 value: result.error ? FormStatus.Success : FormStatus.Error,
                 details: result.error.message
@@ -74,11 +86,8 @@ export default function Calculator() {
     }
 
     const handleSave = async () => {
-        const { location, address, solarArrays } = inputs;
-        const lat = location?.lat.toString() as string;
-        const lng = location?.lng.toString() as string;
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
-        const result = await setCalculatorData({ address, lat, lng, solarArrays });
+        const result = await setCalculatorData(inputs);
 
         if (result.error) toast.error('Failed to save');
         else toast.success('Save successful');
@@ -101,9 +110,10 @@ export default function Calculator() {
                 }
                 <SearchableMap>
                     <PlacesAutocomplete
-                        inputs={inputs}
+                        location={inputs.location}
                         setInputs={setInputs}
-                        handleChange={handleChange} />
+                        handleChange={handleChange}
+                        countryData={countryData} />
                     <DrawingTool
                         inputs={inputs}
                         setInputs={setInputs}

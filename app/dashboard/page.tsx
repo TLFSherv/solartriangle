@@ -1,7 +1,7 @@
 import { getDashboardData, getCachedCalculatorData } from "@/actions/data";
 import Chart from "./components/Chart";
 import Map from "./components/Map";
-import DataTable from "./components/DataTable";
+import SolarArrayTable from "./components/SolarArrayTable";
 import { CalculatorProvider } from "./context/CalculatorProvider";
 
 export default async function Dashboard() {
@@ -13,8 +13,8 @@ export default async function Dashboard() {
 
     return (
         <div className="space-y-12">
-            <CalculatorProvider cacheData={data}>
-                <DataTable />
+            <CalculatorProvider cachedCaclulatorData={cacheResult.data}>
+                <SolarArrayTable />
                 <Map data={data} />
                 <Chart data={data} />
             </CalculatorProvider>

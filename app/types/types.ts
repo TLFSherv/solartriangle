@@ -1,16 +1,31 @@
-export type FormInputs = {
-    address: string;
-    location: { lat: number; lng: number } | null;
-    solarArrays: SolarArray[];
-}
 export type SolarArray = {
     id: number;
-    solarCapacity: number;
-    numberOfPanels: number;
+    capacity: number;
+    quantity: number;
     area: number;
     azimuth: number;
     shape: { lat: number; lng: number; }[];
-    areaToPanels: boolean;
+    areaToQuantity: boolean;
+}
+
+export type LocationData = {
+    country: string;
+    countryCode: string;
+    countryCoords: {
+        lat: number;
+        lng: number;
+    }
+    timeZone: string;
+    address: string;
+    addressCoords: {
+        lat: number;
+        lng: number;
+    }
+}
+
+export type CalculatorData = {
+    location: LocationData,
+    solarArrays: SolarArray[]
 }
 
 export type Suggestion = {
@@ -32,12 +47,6 @@ export type ColorGradient = {
     stopColor: string;
 }[]
 
-export type CalculatorData = {
-    address: string;
-    lat: string;
-    lng: string;
-    solarArrays: SolarArray[]
-}
 
 export type SolarAPIParams = {
     lat: string;
@@ -46,5 +55,6 @@ export type SolarAPIParams = {
     quantity: number;
     azimuth: number;
     tilt: number;
+    timeZone: string;
 }
 

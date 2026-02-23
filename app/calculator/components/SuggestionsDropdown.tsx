@@ -1,18 +1,26 @@
 import React from "react";
-import { FormInputs, Suggestion } from "@/app/types/types";
+import {
+    type CalculatorData,
+    type Suggestion,
+    type LocationData
+} from "@/app/types/types";
 
-export default function SuggestionsDropdown(props:
+export default function SuggestionsDropdown({
+    setInputs,
+    suggestions,
+    setSuggestions,
+    setIsActive }:
     {
         suggestions: Suggestion[],
-        inputs: FormInputs,
-        setInputs: React.Dispatch<React.SetStateAction<FormInputs>>,
+        location: LocationData,
+        setInputs: React.Dispatch<React.SetStateAction<CalculatorData>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
         setIsActive: React.Dispatch<React.SetStateAction<{ countryInput: boolean; addressInput: boolean }>>,
     }) {
-    const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
-    const { inputs, setInputs, suggestions, setSuggestions, setIsActive } = props;
 
-    async function selectPlace(placeId: string, text: string) {
+    const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
+
+    async function selectPlace(placeId: string, addressName: string) {
         setSuggestions([]);
         setIsActive({ countryInput: false, addressInput: false });
         const response = await fetch(
@@ -22,11 +30,17 @@ export default function SuggestionsDropdown(props:
         const data = await response.json();
         if (!data.location) return;
 
-        setInputs({
-            ...inputs,
-            ['address']: text,
-            ['location']: { lat: data.location.latitude, lng: data.location.longitude }
-        });
+        setInputs((prev) => ({
+            ...prev,
+            location: {
+                ...prev.location,
+                address: addressName,
+                addressCoords: {
+                    lat: data.location.latitude,
+                    lng: data.location.longitude
+                }
+            }
+        }));
     }
 
     return (

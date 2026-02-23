@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import { CalculatorContext } from '../context/CalculatorProvider';
 import { type CalculatorData } from "@/app/types/types";
 
-export default function DataTable() {
+export default function SolarArrayTable() {
     const calculatorData: CalculatorData = useContext(CalculatorContext);
     return (
         <div className="flex flex-row justify-center">
@@ -24,8 +24,8 @@ export default function DataTable() {
                     {calculatorData.solarArrays.map((d, i) => {
                         return (<tr key={i}>
                             <td className="border-b border-blue-gray-50">Array {d.id}</td>
-                            <td className="border-b border-blue-gray-50">{d.solarCapacity}</td>
-                            <td className="border-b border-blue-gray-50">{d.numberOfPanels}</td>
+                            <td className="border-b border-blue-gray-50">{d.capacity}</td>
+                            <td className="border-b border-blue-gray-50">{d.quantity}</td>
                             <td className="border-b border-blue-gray-50">{d.area}</td>
                             <td className="border-b border-blue-gray-50">{d.azimuth}</td>
                             <td style={{ backgroundColor: colors[i] }} className='border-b border-blue-gray-50'></td>

@@ -3,7 +3,7 @@ import db from "../../src/db/connection"
 import { eq, and } from 'drizzle-orm'
 import {
     users, solarArrays, polygons, addresses, countries,
-    type NewUser, type Countries, type User
+    type NewUser, type Country, type User
 } from "../../src/db/schema"
 import {
     type UserData,
@@ -125,7 +125,7 @@ export async function deleteUserSolarData(solarArrayId: string, userId: string):
     }
 }
 
-export async function getCountries(): Promise<DBResult<Countries[]>> {
+export async function getCountries(): Promise<DBResult<Country[]>> {
     try {
         const result = await db
             .select()

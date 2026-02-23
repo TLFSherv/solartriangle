@@ -52,7 +52,8 @@ export const countries = pgTable('countries', {
     code: char('code', { length: 2 }).primaryKey(),
     name: varchar('name', { length: 57 }).notNull(),
     latitude: varchar('latitude', { length: 50 }).notNull(),
-    longitude: varchar('longitude', { length: 50 }).notNull()
+    longitude: varchar('longitude', { length: 50 }).notNull(),
+    timeZone: varchar('timeZone', { length: 5 }).notNull()
 })
 
 export const addressRelations = relations(addresses, ({ one }) => ({
@@ -88,7 +89,8 @@ export type Polygon = typeof polygons.$inferSelect
 export type NewPolygon = typeof polygons.$inferInsert
 export type Address = typeof addresses.$inferSelect
 export type NewAddress = typeof addresses.$inferInsert
-export type Countries = typeof countries.$inferSelect
+export type Country = typeof countries.$inferSelect
+export type NewCountry = typeof countries.$inferInsert
 
 export const insertUserSchema = createInsertSchema(users)
 export const selectUserSchema = createSelectSchema(users)
