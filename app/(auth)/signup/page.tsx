@@ -42,7 +42,8 @@ export default function Sigup() {
                 Create Account
             </h1>
             <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-lg sm:text-xl">
-                Please enter a valid email and password to create an account. If you already have an account please select sign in.
+                Please enter a valid email and password to create an account. If you already have an account
+                sign in <Link className="underline underline-offset-2 decoration-orange-400" href={"/signin"}>here</Link>.
             </h2>
             <form action={formAction}
                 id="signupForm"
@@ -120,13 +121,8 @@ export default function Sigup() {
                 <Button
                     type="submit"
                     form="signupForm"
-                    text="Done"
+                    text="Create account"
                     style="bg-linear-[88deg,#F0662A,#F2C521] w-xs sm:w-sm" />
-                <Link href={"/signin"}>
-                    <Button
-                        text="Sign in"
-                        style="bg-[#444444] w-xs sm:w-sm" />
-                </Link>
             </div>
         </div>
     )

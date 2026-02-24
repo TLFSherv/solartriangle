@@ -40,7 +40,8 @@ export default function Sigin() {
             </h1>
             <h2 className="font-[Darker_Grotesque] text-center tracking-wide text-lg sm:text-xl">
                 Enter your credentials below to sign in to your account.
-                If you do not have an account please select sign up.
+                If you do not have an account please sign
+                up <Link className="underline underline-offset-2 decoration-orange-400" href={"/signup"}>here</Link>.
             </h2>
             <form id="siginForm"
                 action={formAction}
@@ -94,13 +95,8 @@ export default function Sigin() {
                 <Button
                     form="siginForm"
                     type="submit"
-                    text="Done"
+                    text="Login"
                     style="bg-linear-[88deg,#F0662A,#F2C521] w-xs sm:w-sm" />
-                <Link href={"/signup"}>
-                    <Button
-                        text="Sign up"
-                        style="bg-[#444444] w-xs sm:w-sm" />
-                </Link>
             </div>
         </div >
     )

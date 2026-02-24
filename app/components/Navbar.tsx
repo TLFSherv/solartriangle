@@ -1,17 +1,32 @@
 "use client"
 
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { isDataInCache } from '@/actions/data'
 
 export default function Navbar() {
     const pathname = usePathname();
-    const navbarLinks = [
+    type NavbarLink = { name: string; href: string };
+    const [navbarLinks, setNavbarLinks] = useState<NavbarLink[]>([
         { name: "Home", href: "/" },
         { name: "Calculator", href: "/calculator" },
         { name: "Learn", href: "/learn" },
-        { name: "Research", href: "/research" },
-    ];
+        // { name: "Research", href: "/research" },
+    ]);
+    useEffect(() => {
+        const addDashboardToNavbar = async () => {
+            const cacheResult = await isDataInCache();
+            if (cacheResult.error) return
+            else if (cacheResult.data) {
+                const learnLink = navbarLinks.pop() as NavbarLink;
+                const dashboardLink = { name: "Dashboard", href: "/dashboard" };
+                setNavbarLinks([...navbarLinks, dashboardLink, learnLink]);
+            }
+        }
+        addDashboardToNavbar();
+    }, []);
+
     const isHome = pathname === "/";
     if (isHome) return <DynamicNavbar navLinks={navbarLinks} />
     return <StaticNavbar navLinks={navbarLinks} pathname={pathname} />

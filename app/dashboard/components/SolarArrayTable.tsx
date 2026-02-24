@@ -8,8 +8,8 @@ import { type CalculatorData } from "@/app/types/types";
 export default function SolarArrayTable() {
     const calculatorData: CalculatorData = useContext(CalculatorContext);
     return (
-        <div className="flex flex-row justify-center">
-            <table className="w-full sm:w-4/5 sm:text-lg text-left min-w-max text-gray-400 mx-4">
+        <div className="flex flex-row justify-center font-[Darker_Grotesque]">
+            <table className="w-full sm:w-4/5 text-lg sm:text-2xl text-left min-w-max text-gray-300 mx-4">
                 <thead>
                     <tr>
                         <th className="border-b border-blue-gray-50">Name</th>
