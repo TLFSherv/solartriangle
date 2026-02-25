@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import SuggestionsDropdown from './SuggestionsDropdown';
-import { LocationData, CalculatorData, Suggestion } from "@/app/types/types";
+import { LocationData, CalculatorData, Suggestion, WarningStatus } from "@/app/types/types";
 import { Country } from '@/src/db/schema';
 
 const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
@@ -13,14 +13,16 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
     }) => {
     const [debouncedString, setDebouncedString] = useState<string | undefined>();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    const [isActive, setIsActive] = useState({ countryInput: false, addressInput: false });
+    const [isDropdownActive, setIsDropdownActive] = useState({ countryDropdown: false, addressDropdown: false });
     const [countryRaw, setCountryRaw] = useState<string>(location.country);
     const [countryDropdown, setCountryDropdown] = useState<string[]>();
+    const [changeWarning, setChangeWarning] = useState<WarningStatus>(WarningStatus.Inactive);
     const searchContainer = useRef<HTMLDivElement>(null);
     const { address, addressCoords } = location;
     const map = useMap();
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
     const countryMapRef = useRef<Map<string, Country>>(new Map<string, Country>());
+    const intervalIdRef = useRef<NodeJS.Timeout>(null);
 
     useEffect(() => {
         countryData.forEach(data => countryMapRef.current.set(data.name, data));
@@ -48,6 +50,9 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
         if (addressCoords) {
             map?.panTo(addressCoords);
             map?.setZoom(18);
+            // display warnings that changing country will reset the form 
+            // after an address has been selected
+            setChangeWarning(WarningStatus.Active);
         }
     }, [addressCoords])
 
@@ -56,7 +61,7 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
         const outsideClickHandler = (e: MouseEvent) => {
             if (searchContainer.current &&
                 !searchContainer.current.contains(e.target as Node))
-                setIsActive({ countryInput: false, addressInput: false });
+                setIsDropdownActive({ countryDropdown: false, addressDropdown: false });
         }
         document.addEventListener('click', outsideClickHandler);
         return () => document.removeEventListener('click', outsideClickHandler);
@@ -64,7 +69,7 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
 
     // fetch auto-suggestion results
     useEffect(() => {
-        if (!debouncedString || !isActive) return;
+        if (!debouncedString || !isDropdownActive) return;
         async function getAutocompleteResults(input: string) {
             if (!input) return setSuggestions([]);
 
@@ -100,6 +105,8 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
     }, [debouncedString]);
 
     function handleCountryChange(e: React.ChangeEvent<HTMLInputElement>) {
+        if (changeWarning === WarningStatus.Execute) return
+
         let value = e.target.value.toLowerCase();
         value = value.split(" ").map(val => [val.charAt(0).toUpperCase() + val.slice(1)]).join(" ");
         const simillarValues: string[] = [];
@@ -117,7 +124,7 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
             return
         }
         setCountryDropdown(simillarValues.concat(diffValues));
-        setIsActive({ countryInput: true, addressInput: false });
+        setIsDropdownActive({ countryDropdown: true, addressDropdown: false });
     }
     function handleCountrySelect(name: string) {
         const selectedCountry = countryMapRef.current.get(name);
@@ -137,28 +144,60 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
                 timeZone: selectedCountry.timeZone
             }
         }));
-        setIsActive({ countryInput: false, addressInput: false });
+        setIsDropdownActive({ countryDropdown: false, addressDropdown: false });
         map?.setCenter(countryCoords);
     }
 
+    function showChangeWarning() {
+        if (changeWarning === WarningStatus.Active) {
+            if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+            setChangeWarning(WarningStatus.Execute);
+            intervalIdRef.current = setInterval(() => {
+                setCountryRaw(location.country);
+                setChangeWarning(WarningStatus.Active);
+            }, 5000);
+        }
+        else if (changeWarning === WarningStatus.Execute) {
+            if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+            setChangeWarning(WarningStatus.Inactive);
+            setCountryRaw(location.country);
+            setIsDropdownActive({ countryDropdown: true, addressDropdown: false });
+            // reset form
+            setInputs((prev) => ({
+                solarArrays: [],
+                location: {
+                    ...prev.location,
+                    address: "",
+                    //addressCoords: { lat: 0, lng: 0 }
+                }
+            }));
+            map?.setZoom(13);
+            map?.setCenter(location.countryCoords);
+            return
+        }
+    }
     return (
         <>
             <AdvancedMarker key={address} position={addressCoords} />
             <div ref={searchContainer} className="mb-10 sm:mb-14 mx-auto max-w-xl space-y-4">
                 <div className='w-full flex flex-col justify-center items-center'>
+                    {changeWarning === WarningStatus.Execute && <p className='text-red-500 text-sm font-semi-bold py-1'>
+                        Editing will reset the form, click again to continue.
+                    </p>}
                     <label className='w-full space-x-2'>
                         <span className='hidden sm:inline'>Country</span>
                         <input
                             value={countryRaw}
                             onChange={handleCountryChange}
+                            onClick={() => showChangeWarning()}
                             placeholder='Country'
-                            onFocus={() => setIsActive({ countryInput: true, addressInput: false })}
+                            onFocus={() => setIsDropdownActive({ countryDropdown: !(changeWarning === WarningStatus.Active), addressDropdown: false })}
                             name="country"
-                            className={`py-1 px-2 border-2 border-[#444444] rounded-md h-9 sm:h-10 w-full sm:w-4/5 ${countryMapRef.current.has(countryRaw) && "border-[#FF8D28]"}`}
+                            className={`py-1 text-base px-2 border-2 rounded-md h-9 sm:h-10 w-full sm:w-4/5 ${countryMapRef.current.has(countryRaw) && "border-[#FF8D28]"} ${(changeWarning === WarningStatus.Execute) && "border-[#FF2D55]"}`}
                             type="text"
                             autoComplete="off" />
                     </label>
-                    {isActive.countryInput &&
+                    {isDropdownActive.countryDropdown &&
                         <ul className="col-start-2 text-sm mx-4 divide-y divide-[#444444] text-[#F2F2F0] w-full sm:w-4/5">
                             {countryDropdown?.map((name) =>
                                 <li key={name}
@@ -175,19 +214,19 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
                             value={address}
                             placeholder='Address'
                             onChange={handleChange}
-                            onFocus={() => setIsActive({ countryInput: false, addressInput: true })}
+                            onFocus={() => setIsDropdownActive({ countryDropdown: false, addressDropdown: true })}
                             name="address"
                             className="py-1 px-2 border-2 border-[#444444] rounded-md w-full sm:w-4/5 h-9 sm:h-10"
                             type="text"
                             autoComplete="off" />
                     </label>
-                    {isActive.addressInput && suggestions.length > 0 && (
+                    {isDropdownActive.addressDropdown && suggestions.length > 0 && (
                         <SuggestionsDropdown
                             suggestions={suggestions}
                             location={location}
                             setInputs={setInputs}
                             setSuggestions={setSuggestions}
-                            setIsActive={setIsActive}
+                            setIsDropdownActive={setIsDropdownActive}
                         />
                     )}
                 </div>

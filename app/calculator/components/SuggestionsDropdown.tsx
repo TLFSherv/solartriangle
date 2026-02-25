@@ -1,5 +1,6 @@
 import React from "react";
 import {
+    WarningStatus,
     type CalculatorData,
     type Suggestion,
     type LocationData
@@ -9,20 +10,20 @@ export default function SuggestionsDropdown({
     setInputs,
     suggestions,
     setSuggestions,
-    setIsActive }:
+    setIsDropdownActive }:
     {
         suggestions: Suggestion[],
         location: LocationData,
         setInputs: React.Dispatch<React.SetStateAction<CalculatorData>>,
         setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>,
-        setIsActive: React.Dispatch<React.SetStateAction<{ countryInput: boolean; addressInput: boolean }>>,
+        setIsDropdownActive: React.Dispatch<React.SetStateAction<{ countryDropdown: boolean; addressDropdown: boolean }>>,
     }) {
 
     const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY as string;
 
     async function selectPlace(placeId: string, addressName: string) {
         setSuggestions([]);
-        setIsActive({ countryInput: false, addressInput: false });
+        setIsDropdownActive({ countryDropdown: false, addressDropdown: false });
         const response = await fetch(
             `https://places.googleapis.com/v1/places/${placeId}?fields=location&key=${apiKey}`
         );

@@ -58,3 +58,9 @@ export type SolarAPIParams = {
     timeZone: string;
 }
 
+export enum WarningStatus {
+    Active,
+    Inactive,
+    Execute
+}
+
