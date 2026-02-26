@@ -103,12 +103,12 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
 
         // Check if user already exists
         const existingUser = await getUserByEmail(data.email);
-        if (existingUser) {
+        if (existingUser.data) {
             return {
                 success: false,
-                message: 'Inavlid username or password',
+                message: 'Inavlid email or password',
                 errors: {
-                    username: ['Invalid username or password']
+                    email: ['Invalid email or password']
                 }
             };
         }

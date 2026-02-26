@@ -26,7 +26,7 @@ export default function Sigup() {
                     }
 
                     return result;
-                } catch (e) {
+                } catch (e: any) {
                     return {
                         success: false,
                         message: (e as Error).message || 'An error occured',

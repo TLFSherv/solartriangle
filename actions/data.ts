@@ -9,7 +9,8 @@ import { verifySession } from "@/app/lib/session";
 import {
     insertPolygonSchema, insertSolarArraySchema,
     type NewSolarArray, type NewPolygon, type NewAddress,
-    type NewCountry, type Country
+    type NewCountry, type Country,
+    insertAddressSchema
 } from "../src/db/schema";
 import { getUserSolarData, updateUserSolarData, insertUserSolarData, deleteUserSolarData, getCountries } from "@/app/lib/dal";
 import { rateLimiter } from '@/app/lib/rate-limiter'
@@ -25,23 +26,23 @@ const calculatorSchema = z.object({
         countryCoords: z.object({
             lat: z.float32().nonoptional(),
             lng: z.float32().nonoptional(),
-        }),
+        }).nonoptional("no country"),
         timeZone: z.string().nonempty("no time zone"),
         address: z.string().nonempty("no address"),
         addressCoords: z.object({
             lat: z.float32().nonoptional(),
             lng: z.float32().nonoptional(),
-        })
+        }).nonoptional({ error: "no address selected from dropdown" })
     }),
     solarArrays: z.array(z.object({
-        id: z.number(),
-        capacity: z.number().min(1),
-        quantity: z.number().min(1),
-        area: z.number().min(1).max(1000),
-        azimuth: z.number().min(1),
-        shape: z.array(z.object({ lat: z.number(), lng: z.number() })),
+        id: z.number({ error: "no address" }),
+        capacity: z.number().min(1, { error: "no capacity" }),
+        quantity: z.number().min(1, { error: "no quantity" }),
+        area: z.number().min(1, { error: "no area" }).max(1000, { error: "area must be less than 1000" }),
+        azimuth: z.number().min(1, { error: "no azimuth" }),
+        shape: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1, { error: "no polygons" }),
         areaToQuantity: z.boolean().optional()
-    })).min(1)
+    })).min(1, { error: "Please add one or more polygons to the map." })
 })
 type DbData = {
     solarArrays: NewSolarArray;
@@ -58,7 +59,12 @@ type fieldErrors = {
 }
 
 type DataResult<T> = { data: T; error: null } |
-{ data: null; error: { message: string } }
+{
+    data: null; error: {
+        message: string;
+        zodError?: { location?: string[] | undefined; solarArrays?: string[] | undefined; }
+    }
+}
 
 const revalidate = 600
 
@@ -307,8 +313,7 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
         const validationResult = z.safeParse(calculatorSchema, input);
         if (!validationResult.success) {
             let zodError = z.flattenError(validationResult.error).fieldErrors;
-            const errorMessage = zodErrorToString(zodError);
-            return { data: null, error: { message: errorMessage } }
+            return { data: null, error: { message: "validation error", zodError } }
         }
 
         // get user id
@@ -364,13 +369,12 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
 
             const polygonValidation = z.safeParse(insertPolygonSchema, polygon);
             const solarArrayValidation = z.safeParse(insertSolarArraySchema, solarArray);
+            const addressValidation = z.safeParse(insertAddressSchema, address);
 
-            if (!polygonValidation.success || !solarArrayValidation.success) {
-                const zodError = !polygonValidation.success ?
-                    z.flattenError(polygonValidation.error).fieldErrors :
-                    z.flattenError(solarArrayValidation.error as $ZodError).fieldErrors
-                const errorMessage = zodErrorToString(zodError);
-                throw Error(errorMessage)
+            if (!polygonValidation.success ||
+                !solarArrayValidation.success ||
+                !addressValidation.success) {
+                throw new Error("Failed to save data")
             }
 
             let result;
@@ -389,7 +393,7 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
             const result = await deleteUserSolarData(key.toString(), userId);
             if (result.error) throw Error(result.error.message);
         }
-        return { data: "data saved successfully", error: null };
+        return { data: "Data saved successfully", error: null };
     } catch (e: any) {
         return { data: null, error: { message: e.message } };
     }
