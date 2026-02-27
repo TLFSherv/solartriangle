@@ -2,9 +2,9 @@ import { fetchWeatherApi } from "openmeteo";
 import { type SolarAPIParams } from "@/app/types/types";
 
 export const getPVWattsData = async (input: SolarAPIParams) => {
-    const { lat, lng, tilt, azimuth, capacity } = input;
+    const { lat, lng, tilt, azimuth, capacity, losses } = input;
     const api_key = process.env.NEXT_PUBLIC_NREL_API_KEY;
-    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${azimuth}&system_capacity=${capacity}&module_type=0&losses=14&array_type=1&tilt=${tilt}&lat=${lat}&lon=${lng}&timeframe=hourly`;
+    const url = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${api_key}&azimuth=${azimuth}&system_capacity=${capacity}&module_type=0&losses=${losses}&array_type=1&tilt=${tilt}&lat=${lat}&lon=${lng}&timeframe=hourly`;
     try {
         const result = await fetch(url, { next: { revalidate: 600 } });
         return await result.json();

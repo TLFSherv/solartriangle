@@ -137,6 +137,8 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             quantity: 0,
             area: 0,
             azimuth: 0,
+            tilt: 30,
+            losses: 14,
             shape: [],
             areaToQuantity: false,
         };
@@ -304,11 +306,3 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         </div>
     );
 }
-
-/*
-(32.3201028286985,-64.76289968774572)
-(32.3202290137292,-64.75612572670218)
-(32.31553082586124,-64.75552153814303)
-(32.315162765498194,-64.7626846958499)
-
-*/

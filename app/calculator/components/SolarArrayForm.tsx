@@ -59,7 +59,7 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                         })}
                     </ol>
                 </div>
-                <div className="flex-2 grid grid-cols-2 grid-rows-2 gap-2 sm:gap-6 text-xs sm:text-sm max-h-[200px] my-auto">
+                <div className="flex-2 grid grid-cols-2 grid-rows-3 gap-x-3 gap-y-4 sm:gap-6 text-xs sm:text-sm max-h-[300px] my-auto">
                     <div className="space-y-1">
                         <label className="block text-center" htmlFor="solarCapacity">
                             Solar capacity
@@ -119,6 +119,39 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
                             min={1}
                             max={10000}
                             step={0.01}
+                            autoComplete="false"
+                            disabled={isEmpty} />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-center block" htmlFor="azimuth">
+                            Tilt
+                        </label>
+                        <input
+                            name="tilt"
+                            value={solarArrays[activeIndex]?.tilt ?? 30}
+                            onChange={handleChange}
+                            className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
+                            type="number"
+                            min={0}
+                            max={90}
+                            step={0.1}
+                            autoComplete="false"
+                            disabled={isEmpty}
+                            required />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-center block" htmlFor="area">
+                            Losses
+                        </label>
+                        <input
+                            name="losses"
+                            value={solarArrays[activeIndex]?.losses ?? 14}
+                            onChange={handleChange}
+                            className="py-1 px-2 border-2 border-[#444444] rounded-md w-full"
+                            type="number"
+                            min={1}
+                            max={100}
+                            step={1}
                             autoComplete="false"
                             disabled={isEmpty} />
                     </div>

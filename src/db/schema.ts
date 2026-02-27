@@ -6,7 +6,7 @@ import {
     timestamp,
     char,
     integer,
-    numeric
+    numeric,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
@@ -24,7 +24,9 @@ export const solarArrays = pgTable('solarArrays', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 24 }).notNull(),
     capacity: integer('capacity').notNull(),
-    quantity: integer('quantity'),
+    quantity: integer('quantity').notNull(),
+    tilt: numeric('tilt', { precision: 5, scale: 2 }).default("30"),
+    losses: numeric('losses', { precision: 5, scale: 2 }).default("14"),
     userId: uuid('user_id').references(() => users.id),
     addressId: uuid('address_id').references(() => addresses.id),
     polygonId: uuid('polygon_id').references(() => polygons.id, { onDelete: 'cascade' }),
@@ -34,17 +36,16 @@ export const solarArrays = pgTable('solarArrays', {
 
 export const polygons = pgTable('polygons', {
     id: uuid('id').primaryKey().defaultRandom(),
-    area: varchar('area', { length: 12 }),
-    numberOfPoints: integer('number_of_points'),
-    azimuth: varchar('azimuth', { length: 12 }),
+    area: numeric('area', { precision: 8, scale: 3 }).notNull(),
+    azimuth: numeric('azimuth', { precision: 6, scale: 3 }).notNull(),
     coords: text('coords').notNull(),
 })
 
 export const addresses = pgTable('addresses', {
     id: uuid('id').primaryKey().defaultRandom(),
     countryCode: char('countryCode', { length: 2 }).notNull().references(() => countries.code),
-    latitude: varchar('latitude', { length: 50 }).notNull(),
-    longitude: varchar('longitude', { length: 50 }).notNull(),
+    latitude: varchar('latitude', { length: 60 }).notNull(),
+    longitude: varchar('longitude', { length: 60 }).notNull(),
     name: varchar('name', { length: 125 }).notNull().unique()
 })
 

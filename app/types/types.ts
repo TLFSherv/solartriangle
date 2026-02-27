@@ -4,6 +4,8 @@ export type SolarArray = {
     quantity: number;
     area: number;
     azimuth: number;
+    tilt: number;
+    losses: number;
     shape: { lat: number; lng: number; }[];
     areaToQuantity: boolean;
 }
@@ -56,6 +58,7 @@ export type SolarAPIParams = {
     azimuth: number;
     tilt: number;
     timeZone: string;
+    losses: number;
 }
 
 export enum WarningStatus {

@@ -39,6 +39,8 @@ const calculatorSchema = z.object({
         quantity: z.number().min(1, { error: "no quantity" }),
         area: z.number().min(1, { error: "no area" }).max(1000, { error: "area must be less than 1000" }),
         azimuth: z.number().min(1, { error: "no azimuth" }),
+        tilt: z.number().min(0, { error: "tilt must be positive" }).max(90, { error: "tilt must be less than 90 degrees" }).optional(),
+        losses: z.number().min(0, { error: "losses must be positive" }).max(100, { error: "losses must be less than or equal to 100%" }).optional(),
         shape: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1, { error: "no polygons" }),
         areaToQuantity: z.boolean().optional()
     })).min(1, { error: "Please add one or more polygons to the map." })
@@ -49,13 +51,6 @@ type DbData = {
     addresses: NewAddress;
     countries: NewCountry;
 };
-
-type fieldErrors = {
-    address?: string[] | undefined;
-    lat?: string[] | undefined;
-    lng?: string[] | undefined;
-    solarArrays?: string[] | undefined;
-}
 
 type DataResult<T> = { data: T; error: null } |
 {
@@ -78,14 +73,15 @@ export async function getDashboardData(input: CalculatorData):
 
         // rate limit passed
         let dashboardData: any[] = []
-        for (const { capacity, quantity, azimuth } of input.solarArrays) {
+        for (const { capacity, quantity, azimuth, tilt, losses } of input.solarArrays) {
             const apiInputs = {
                 lat: input.location.addressCoords.lat.toString(),
                 lng: input.location.addressCoords.lng.toString(),
                 capacity: (capacity * quantity) / 1000, // kW
                 quantity,
                 azimuth,
-                tilt: 30,
+                tilt,
+                losses,
                 timeZone: input.location.timeZone
             };
             const pvwatts = await getPVWattsData(apiInputs);
@@ -242,6 +238,8 @@ function formatData(input: DbData[]): CalculatorData {
             quantity: solarArrays.quantity as number,
             area: parseInt(polygons.area as string),
             azimuth: parseInt(polygons.azimuth as string),
+            tilt: parseFloat(solarArrays.tilt ?? "30"),
+            losses: parseFloat(solarArrays.losses ?? "14"),
             shape: path,
             areaToQuantity: false
         }
@@ -343,14 +341,15 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
                 name: sa.id.toString(),
                 capacity: sa.capacity,
                 quantity: sa.quantity,
+                tilt: sa.tilt.toString(),
+                losses: sa.losses.toString(),
                 userId: userId,
                 lastModified: new Date(),
             }
             const polygon: NewPolygon = {
                 coords: JSON.stringify(sa.shape),
                 area: sa.area.toString(),
-                azimuth: sa.azimuth.toString(),
-                numberOfPoints: sa.shape.length
+                azimuth: sa.azimuth.toString()
             }
             const address: NewAddress = {
                 name: input.location.address,
