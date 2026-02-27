@@ -60,7 +60,7 @@ export async function getUserSolarData(userId: string): Promise<DBResult<UserSol
             .where(eq(solarArrays.userId, userId));
 
         return { data: result, error: null };
-    } catch (e) {
+    } catch (e: any) {
         return { data: null, error: { message: "error selecting data" } };
     }
 }

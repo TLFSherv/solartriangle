@@ -5,6 +5,7 @@ import logo from '../public/logo.png'
 import Navbar from "./components/Navbar";
 import AccountMenu from "./components/AccountMenu";
 import { verifySession } from "./lib/session";
+import { LayoutProvider } from "./context/LayoutProvider"
 
 export const metadata: Metadata = {
   title: "solar triangle",
@@ -28,22 +29,24 @@ export default async function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="flex flex-col max-w-6xl min-h-screen mx-auto text-[#F2F2F0]">
-        <header className="flex justify-between items-center mx-5 my-2">
-          <Image
-            src={logo}
-            alt="logo"
-            width={120}
-            height={65}
-          />
-          <AccountMenu email={email} />
-        </header>
-        <main className="flex-1">
-          <Navbar />
-          {children}
-        </main>
-        <footer className="flex justify-center font-[Inter] font-light">
-          <h4 className="pb-2 text-xs">Copyright @DayDream</h4>
-        </footer>
+        <LayoutProvider>
+          <header className="flex justify-between items-center mx-5 my-2">
+            <Image
+              src={logo}
+              alt="logo"
+              width={120}
+              height={65}
+            />
+            <AccountMenu email={email} />
+          </header>
+          <main className="flex-1">
+            <Navbar />
+            {children}
+          </main>
+          <footer className="flex justify-center font-[Inter] font-light">
+            <h4 className="pb-2 text-xs">Copyright @DayDream</h4>
+          </footer>
+        </LayoutProvider>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { useRouter } from "next/navigation";
 import SearchableMap from "./components/SearchableMap";
 import PlacesAutocomplete from './components/PlacesAutocomplete';
@@ -9,6 +9,7 @@ import { isLoggedIn, cacheCalculatorData, getCalculatorData, setCalculatorData, 
 import { type CalculatorData } from "@/app/types/types";
 import { type Country } from "@/src/db/schema";
 import toast, { Toaster } from "react-hot-toast";
+import { LayoutContext } from "../context/LayoutProvider";
 
 export default function Calculator() {
     enum FormStatus { Success, Error, Pending };
@@ -29,6 +30,7 @@ export default function Calculator() {
     const [isAuth, setIsAuth] = useState(false);
     const [countryData, setCountryData] = useState<Country[]>([]);
     const router = useRouter();
+    const { setIsDashboardMode } = useContext(LayoutContext);
 
     useEffect(() => {
         const initPage = async () => {
@@ -44,7 +46,10 @@ export default function Calculator() {
             // check cache or database for data and pre-populate the form
             const dataResult = await getCalculatorData();
 
-            if (!dataResult.data) return;
+            if (!dataResult.data) {
+                setIsDashboardMode(false);
+                return;
+            }
             setInputs(dataResult.data);
         }
         initPage();
@@ -82,7 +87,10 @@ export default function Calculator() {
                 details: solarArrays.concat(location)
             });
         }
-        else router.push('/dashboard');  // navigate to dashboard 
+        else {
+            setIsDashboardMode(true);
+            router.push('/dashboard');  // navigate to dashboard 
+        }
     }
 
     const handleSave = async () => {

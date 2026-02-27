@@ -1,31 +1,31 @@
 "use client"
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { usePathname } from 'next/navigation'
-import { isDataInCache } from '@/actions/data'
+import { LayoutContext } from '../context/LayoutProvider'
+
+type NavbarLink = { name: string; href: string };
 
 export default function Navbar() {
     const pathname = usePathname();
-    type NavbarLink = { name: string; href: string };
-    const [navbarLinks, setNavbarLinks] = useState<NavbarLink[]>([
+    const initNavbarLinks = [
         { name: "Home", href: "/" },
         { name: "Calculator", href: "/calculator" },
         { name: "Learn", href: "/learn" },
         // { name: "Research", href: "/research" },
-    ]);
+    ];
+    const [navbarLinks, setNavbarLinks] = useState<NavbarLink[]>(initNavbarLinks);
+    const { isDashboardMode } = useContext(LayoutContext);
     useEffect(() => {
-        const addDashboardToNavbar = async () => {
-            const cacheResult = await isDataInCache();
-            if (cacheResult.error) return
-            else if (cacheResult.data) {
-                const learnLink = navbarLinks.pop() as NavbarLink;
-                const dashboardLink = { name: "Dashboard", href: "/dashboard" };
-                setNavbarLinks([...navbarLinks, dashboardLink, learnLink]);
-            }
+        if (isDashboardMode) {
+            const learnLink = navbarLinks.pop() as NavbarLink;
+            const dashboardLink = { name: "Dashboard", href: "/dashboard" };
+            setNavbarLinks([...navbarLinks, dashboardLink, learnLink]);
         }
-        addDashboardToNavbar();
-    }, []);
+        return () => setNavbarLinks(initNavbarLinks);
+    }, [isDashboardMode])
+
 
     const isHome = pathname === "/";
     if (isHome) return <DynamicNavbar navLinks={navbarLinks} />

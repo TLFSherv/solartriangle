@@ -4,7 +4,6 @@ import { myRedisClient } from "@/app/lib/redis";
 import { redirect, RedirectType } from 'next/navigation'
 import { headers } from "next/headers";
 import { z } from 'zod';
-import { $ZodError } from "zod/v4/core";
 import { verifySession } from "@/app/lib/session";
 import {
     insertPolygonSchema, insertSolarArraySchema,
@@ -276,9 +275,10 @@ export async function getCalculatorData(): Promise<DataResult<CalculatorData | n
         // if user is logged in check if they have data in the database
         if (session?.isAuth) {
             const result = await getUserSolarData(session.id);
-            if (result.error) throw Error(result.error.message)
-
-            return { data: formatData(result.data), error: null };
+            if (result.error)
+                throw Error(result.error.message)
+            else if (result.data.length)
+                return { data: formatData(result.data), error: null };
         }
 
         // check if there's data in cache
@@ -296,14 +296,6 @@ export async function getCalculatorData(): Promise<DataResult<CalculatorData | n
     } catch (e: any) {
         return { data: null, error: { message: e.message } }
     }
-}
-
-function zodErrorToString(error: fieldErrors) {
-    let { address, lat, lng, solarArrays } = error;
-    return address ? address[0] : ""
-        .concat(" ", lat ? lat[0] : "").trim()
-        .concat(" ", lng ? lng[0] : "").trim()
-        .concat(" ", solarArrays ? solarArrays[0] : "").trim();
 }
 
 // Store/update input data in database if user has an account

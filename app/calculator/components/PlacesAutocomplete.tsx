@@ -52,7 +52,7 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
             map?.setZoom(18);
             // display warnings that changing country will reset the form 
             // after an address has been selected
-            setChangeWarning(WarningStatus.Active);
+            address && setChangeWarning(WarningStatus.Active);
         }
     }, [addressCoords])
 
@@ -109,13 +109,12 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
 
         let value = e.target.value.toLowerCase();
         value = value.split(" ").map(val => [val.charAt(0).toUpperCase() + val.slice(1)]).join(" ");
-        const simillarValues: string[] = [];
-        const diffValues: string[] = [];
+        const recommendedValues: string[] = [];
         for (let [key, _] of countryMapRef.current) {
             if (key.startsWith(value) || key.includes(value)) {
-                simillarValues.push(key);
+                recommendedValues.unshift(key);
             } else {
-                diffValues.push(key);
+                recommendedValues.push(key);
             }
         }
         setCountryRaw(value);
@@ -123,7 +122,7 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
             handleCountrySelect(value);
             return
         }
-        setCountryDropdown(simillarValues.concat(diffValues));
+        setCountryDropdown(recommendedValues);
         setIsDropdownActive({ countryDropdown: true, addressDropdown: false });
     }
     function handleCountrySelect(name: string) {
