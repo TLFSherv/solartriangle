@@ -6,7 +6,6 @@ import erase from '../../../public/eraser.png'
 import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth, latLngToXY } from '../lib/geometryTool'
 import { CalculatorData, SolarArray } from "@/app/types/types";
 import { getCalculatorData } from "@/actions/data";
-import { solarArrays } from "@/src/db/schema";
 
 type Polygon = {
     id: number;
@@ -94,7 +93,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             strokeColor: '#ffdd00ff',
             strokeOpacity: 0.8,
             strokeWeight: 2,
-            fillColor: '#ffdd00ff',
+            fillColor: '#444444',
             fillOpacity: 0.35,
             center: event.latLng,
             radius,
@@ -102,6 +101,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         })
         const id = circleIdRef.current;
         circle.addListener('click', () => {
+            circle.setOptions({ strokeColor: "#F0662A" });
             setSelectedCircleId(id);
         });
 
@@ -125,7 +125,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         polygonsRef.current = polygons;
 
         if (polygons.length === 0) {
-            setInputs((prev) => ({ ...prev, solarSystems: [] }));
+            setInputs((prev) => ({ ...prev, solarArrays: [] }));
             return
         }
 
@@ -197,12 +197,12 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
 
     useEffect(() => {
-        resetPolygonStrokes();
-        polygonsRef.current?.forEach((p) => {
-            if (p.id === activeId)
-                p.polygon.setOptions({ strokeColor: "#F0662A" });
-        })
+        setPolygonStrokes();
     }, [activeId]);
+
+    useEffect(() => {
+        setCircleStrokes();
+    }, [selectedCircleId]);
 
     // init polygons on map load
     useEffect(() => {
@@ -256,7 +256,11 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
                 : [{ id: id, area, azimuth, polygon }]
         );
 
-        polygon.addListener("click", () => setActiveId(id));
+        polygon.addListener("click", () => {
+            polygon.setOptions({ strokeColor: "#F0662A" });
+            setActiveId(id)
+        });
+
         polygon.addListener("dragstart", () => {
             const currState = polygon.getPath().getArray().map(path => ({ lat: path.lat(), lng: path.lng() }));
             if (!currState || !polygonStateStack.current) return
@@ -273,25 +277,25 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
     const deletePolygon = () => {
         if (selectedCircleId) {
-            const newCircles = circles.filter(c => c.id !== selectedCircleId);
-            const circleToDelete = circles.filter(c => c.id === selectedCircleId)[0];
-            setCircles(newCircles);
-            setSelectedCircleId(0);
+            const index = circles.findIndex(c => c.id === selectedCircleId);
+            const circleToDelete = circles.splice(index, 1)[0];
+            setCircles([...circles]);
+            setSelectedCircleId(circles.at(-1)?.id || 0);
             circleToDelete.circle.setMap(null);
             circleStateStack.current.delete(selectedCircleId);
             return
         }
         if (!polygons) return;
-        const selectedPolygon = polygons?.filter((p) =>
+        const index = polygons?.findIndex(p =>
             p.polygon.get("strokeColor") === '#F0662A'
-        )[0];
-        if (!selectedPolygon) return;
-        selectedPolygon.polygon.setMap(null);
-        const newPolygons = polygons?.filter((poly) => poly !== selectedPolygon);
-        setPolygons(() => newPolygons);
+        );
+        if (index === -1) return;
+        polygons[index].polygon.setMap(null);
+        const selectedPolygon = polygons.splice(index, 1)[0];
+        setPolygons([...polygons]);
         polygonStateStack.current.delete(selectedPolygon.id);
         // make another polygon active after deleting
-        if (newPolygons.length > 0) setActiveId(() => newPolygons[0].id);
+        if (polygons.length > 0) setActiveId(polygons.at(-1)?.id as number);
     }
 
     function undoAction() {
@@ -308,9 +312,16 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         });
     }
 
-    const resetPolygonStrokes = () => {
+    const setCircleStrokes = () => {
+        circles.forEach(c => {
+            if (c.id !== selectedCircleId)
+                c.circle.setOptions({ strokeColor: "#ffdd00ff" })
+        })
+    }
+
+    const setPolygonStrokes = () => {
         polygonsRef.current?.forEach((p) => {
-            if (p.polygon.get("strokeColor") === '#F0662A')
+            if (p.id !== activeId)
                 p.polygon.setOptions({ strokeColor: "#1E1E1E" });
         })
     }

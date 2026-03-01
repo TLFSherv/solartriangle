@@ -19,20 +19,18 @@ export default function SolarArrayTable() {
                         <th className="border-b border-blue-gray-50 px-2">Azimuth</th>
                         <th className="border-b border-blue-gray-50 px-2">Tilt</th>
                         <th className="border-b border-blue-gray-50 px-2">Losses</th>
-                        <th className="border-b border-blue-gray-50 px-2">Color</th>
                     </tr>
                 </thead>
                 <tbody className="font-light">
                     {calculatorData.solarArrays.map((d, i) => {
                         return (<tr key={i}>
-                            <td className="border-b border-blue-gray-50 px-2">Array {d.id}</td>
+                            <td style={{ backgroundColor: colors[i] }} className="border-b border-blue-gray-50 px-2">Array {d.id}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.capacity}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.quantity}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.area}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.azimuth}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.tilt}</td>
                             <td className="border-b border-blue-gray-50 px-2">{d.losses}</td>
-                            <td style={{ backgroundColor: colors[i] }} className='border-b border-blue-gray-50'></td>
                         </tr>)
                     })}
                 </tbody>
