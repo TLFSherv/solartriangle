@@ -11,16 +11,13 @@ export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveI
     const { solarArrays } = inputs;
     let isEmpty = solarArrays.length === 0;
     let activeIndex = 0;
-
-    useEffect(() => {
-        if (isEmpty) activeIndex = 0;
-        else activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
-    }, [activeId])
+    if (isEmpty) activeIndex = 0;
+    else activeIndex = solarArrays.findIndex((sa) => sa.id === activeId);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         let name = e.target.name;
         let value = e.target.value;
-
+        console.log(solarArrays[activeIndex]);
         if (name === 'areaToQuantity' && e.target.checked) {
             // area of a panel is 1.8m2 also include 30% buffer
             let panelCountEstimate = (solarArrays[activeIndex].area || 0) / 2.34;

@@ -1,3 +1,9 @@
+
+type LatLng = {
+    lat: number;
+    lng: number;
+};
+
 export function createRectanglePoints(
     center: (google.maps.LatLng | undefined),
     width: number,
@@ -17,19 +23,38 @@ export function createRectanglePoints(
     ];
 }
 
-function latLngToXY(latLng: google.maps.LatLng, origin: google.maps.LatLng) {
+export function latLngToXY(latLng: google.maps.LatLng | LatLng,
+    origin: google.maps.LatLng | LatLng) {
     const R = 6378137; // Earth radius (meters)
-    const dLat = (latLng.lat() - origin.lat()) * Math.PI / 180;
-    const dLng = (latLng.lng() - origin.lng()) * Math.PI / 180;
+    let lat = 0, lng = 0;
+    let originLat = 0, originLng = 0;
+    if ("toJSON" in latLng) {
+        lat = latLng.lat();
+        lng = latLng.lng();
+    } else {
+        lat = latLng.lat;
+        lng = latLng.lng;
+    }
 
-    const x = R * dLng * Math.cos(origin.lat() * Math.PI / 180);
+    if ("toJSON" in origin) {
+        originLat = origin.lat();
+        originLng = origin.lng();
+    } else {
+        originLat = origin.lat;
+        originLng = origin.lng;
+    }
+
+    const dLat = (lat - originLat) * Math.PI / 180;
+    const dLng = (lng - originLng) * Math.PI / 180;
+
+    const x = R * dLng * Math.cos(originLat * Math.PI / 180);
     const y = R * dLat;
 
     return { x, y };
 }
 
-export function getPolygonArea(polygon: google.maps.Polygon) {
-    return google.maps.geometry.spherical.computeArea(polygon.getPath().getArray());
+export function getPolygonArea(path: google.maps.LatLng[] | LatLng[]) {
+    return google.maps.geometry.spherical.computeArea(path);
 }
 
 export function getPolygonPath(polygon: google.maps.Polygon) {
@@ -37,9 +62,7 @@ export function getPolygonPath(polygon: google.maps.Polygon) {
     return path.map(p => ({ lat: p.lat(), lng: p.lng() }));
 }
 
-export function getPolygonAzimuth(polygon: google.maps.Polygon) {
-    const path = polygon.getPath().getArray();
-
+export function getPolygonAzimuth(path: google.maps.LatLng[] | LatLng[]) {
     if (path.length < 2) return 0;
 
     // const a = google.maps.geometry.spherical.computeArea(path);

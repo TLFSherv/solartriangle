@@ -38,11 +38,11 @@ const calculatorSchema = z.object({
         capacity: z.number().min(1, { error: "no capacity" }),
         quantity: z.number().min(1, { error: "no quantity" }),
         area: z.number().min(1, { error: "no area" }).max(1000, { error: "area must be less than 1000" }),
-        azimuth: z.number().min(1, { error: "no azimuth" }),
+        azimuth: z.number().min(0, { error: "azimuth must be greater than or equal to 0" }).max(360, { error: "azimuth must be less than or equal to 360" }),
         tilt: z.number().min(0, { error: "tilt must be positive" }).max(90, { error: "tilt must be less than 90 degrees" }).optional(),
         losses: z.number().min(0, { error: "losses must be positive" }).max(100, { error: "losses must be less than or equal to 100%" }).optional(),
         shape: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1, { error: "no polygons" }),
-        areaToQuantity: z.boolean().optional()
+        areaToQuantity: z.boolean().optional().default(false),
     })).min(1, { error: "Please add one or more polygons to the map." })
 })
 type DbData = {

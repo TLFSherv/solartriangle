@@ -170,6 +170,8 @@ const PlacesAutocomplete = ({ location, setInputs, handleChange, countryData }:
                     //addressCoords: { lat: 0, lng: 0 }
                 }
             }));
+            // erase all polygons
+
             map?.setZoom(13);
             map?.setCenter(location.countryCoords);
             return

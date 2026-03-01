@@ -6,6 +6,7 @@ import { formatMapData, getDataColors, gradientProps } from "../lib/dataTools";
 
 export default function Map({ data }: { data: any[] }) {
     const [dataId, setDataId] = useState(0);
+    console.log(data);
     const [formattedData, dataRanges] = formatMapData(data);
     const dataColors = getDataColors(formattedData, dataId, dataRanges);
 

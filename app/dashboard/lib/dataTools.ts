@@ -134,6 +134,7 @@ export function formatMapData(data: any[]) {
     const daysPerMonth = new Array(12).fill(0).map((_, index) => new Date(2025, index + 1, 0).getDate())
     // get the ranges for ac_annual and solrad_annual
     let ac_range: number[] = [], solrad_range: number[] = [];
+    let capacity_range: number[] = [];
     let minMonth = 0, maxMonth = 0;
 
     const inputData = data.map((d, i) => {
@@ -153,6 +154,13 @@ export function formatMapData(data: any[]) {
             Math.max(...data.poa_monthly) / daysPerMonth[maxMonth]
         );
 
+        // capacity factors range from 10% to 25%,
+        // but still consider edge cases
+        capacity_range.push(
+            Math.min(data.capacity_factor, 10),
+            Math.max(data.capacity_factor, 25)
+        );
+
         return [data.ac_annual / 12,
         data.solrad_annual, // kWh/m2/day
         data.capacity_factor];
@@ -161,7 +169,7 @@ export function formatMapData(data: any[]) {
     const dataRanges = [
         [Math.min(...ac_range), Math.max(...ac_range)], // range for monthly ac output
         [Math.min(...solrad_range), Math.max(...solrad_range)], // range for daily average solar radiation
-        [10, 25] // capacity factors range from 10% to 25%
+        [Math.min(...capacity_range), Math.max(...capacity_range)]
     ];
 
     const cleanRanges: [number, number][] = dataRanges.map(range => {
@@ -176,10 +184,9 @@ export function formatMapData(data: any[]) {
 
     return [inputData, cleanRanges];
 }
-
+// there's an error in here
 export function getDataColors(data: any[][], dataId: number, dataRanges: number[][]) {
     const dataColors: string[] = [];
-
     data.forEach(d => {
         const value = 100 * ((d[dataId] - dataRanges[dataId][0]) / (dataRanges[dataId][1] - dataRanges[dataId][0]));
         const id = gradientProps.findIndex(color => value < color.offset);

@@ -3,9 +3,10 @@ import { useMap } from '@vis.gl/react-google-maps';
 import Image from "next/image";
 import undo from '../../../public/undo.png'
 import erase from '../../../public/eraser.png'
-import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth } from '../lib/geometryTool'
+import { createRectanglePoints, getPolygonPath, getPolygonArea, getPolygonAzimuth, latLngToXY } from '../lib/geometryTool'
 import { CalculatorData, SolarArray } from "@/app/types/types";
 import { getCalculatorData } from "@/actions/data";
+import { solarArrays } from "@/src/db/schema";
 
 type Polygon = {
     id: number;
@@ -44,11 +45,11 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
 
     // when 4 circles are added to the map, replace with polygon
     useEffect(() => {
+        // create polygon
         if (circles.length === 4) {
-            // create polygon
             const polygonId = polygonIdRef.current;
 
-            // find center point of all points
+            // find center point of all circles
             let center = circles.reduce((acc, curr) => {
                 const point = curr.circle.getCenter();
                 const coord = { lat: point?.lat() || 0, lng: point?.lng() || 0 };
@@ -56,24 +57,20 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             }, { lat: 0, lng: 0 });
             center = { lat: center.lat / 4, lng: center.lng / 4 };
 
-            // order points around center
-            const orderedPath = new Array(4);
-            circles.forEach(({ circle }) => {
-                let c = circle.getCenter();
-                let cLat = c?.lat() as number;
-                let cLng = c?.lng() as number;
-                // check for top right
-                if (cLat < center.lat && cLng > center.lng) orderedPath[0] = c;
-                // check for bottom right
-                else if (cLat > center.lat && cLng > center.lng) orderedPath[1] = c;
-                // check for bottom left
-                else if (cLat > center.lat && cLng < center.lng) orderedPath[2] = c;
-                // check for top left
-                else if (cLat < center.lat && cLng < center.lng) orderedPath[3] = c;
+            const angleMap = new Map<number, google.maps.LatLng>();
+            // convert lat lng to x y using centroid 
+            // get angle it makes with the center
+            const angles = circles.map(c => {
+                let point = c.circle.getCenter() as google.maps.LatLng;
+                let { x, y } = latLngToXY(point, center);
+                const angle = Math.atan2(x, y);
+                angleMap.set(angle, point);
+                return angle
             });
 
-            const path = circles.map(c => c.circle.getCenter());
-            if (path) addPolygon({ id: polygonId, area: 0, azimuth: 0, path: orderedPath });
+            let sortedAngles = angles.sort((a, b) => a - b);
+            const orderedPath = sortedAngles.map(angle => angleMap.get(angle) as google.maps.LatLng);
+            addPolygon({ id: polygonId, area: 0, azimuth: 0, path: orderedPath });
             // remove all circles
             circles.forEach(c => c.circle.setMap(null));
             setCircles([]);
@@ -121,7 +118,8 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         circle.setMap(map);
         circleIdRef.current = id + 1;
     }
-    // update SolarArray input object to be consistent with polygons
+    // update the positions of all the solarArrays 
+    // but only add the last polygon if it doesn't exist in solarArrays
     useEffect(() => {
         if (!polygons) return
         polygonsRef.current = polygons;
@@ -142,21 +140,58 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             shape: [],
             areaToQuantity: false,
         };
-        // store each SolarArray in the array at the index equal to its id
-        const lastId = polygons.reduce((largest, current) =>
-            (current.id > largest.id ? current : largest)).id;
-        const solarArraysById: SolarArray[] =
-            Array.from({ length: lastId + 1 }, () => initSolarArray);
-        inputs.solarArrays.forEach(s => solarArraysById[s.id] = s);
-        let newSolarArrays = polygons.map(
-            ({ id, area, azimuth, polygon }) => ({
-                ...solarArraysById[id],
-                id,
-                area,
-                azimuth,
-                shape: getPolygonPath(polygon)
-            })
-        );
+
+        // store each polygon in the array at the index equal to its polygon id
+        const polygonsById: (Polygon | undefined)[] = Array.from({ length: polygonIdRef.current });
+        polygons.forEach(p => polygonsById[p.id] = { ...p });
+
+        const newPolygons: Polygon[] = [];
+        const newSolarArrays: SolarArray[] = [];
+        // update the paths for all solarArrays
+        inputs.solarArrays.forEach((sa) => {
+            if (polygonsById[sa.id]) {
+                let polygonCopy = { ...polygonsById[sa.id] as Polygon };
+                newPolygons.push(polygonCopy);
+                polygonsById[sa.id] = undefined;
+
+                const { area, azimuth, polygon } = polygonCopy;
+                newSolarArrays.push({
+                    ...sa,
+                    area,
+                    azimuth,
+                    shape: getPolygonPath(polygon),
+                    areaToQuantity: false
+                });
+            }
+        });
+
+        // add the last polygon in polygons
+        // if it doesn't already exist in solarArrays
+        const lastPolygon = polygons.at(-1) as Polygon;
+        const lastSolarArray = inputs.solarArrays.at(-1);
+        if (!lastSolarArray || lastPolygon.id > lastSolarArray.id) {
+            polygonsById[lastPolygon.id] = undefined;
+            newPolygons.push(lastPolygon);
+            newSolarArrays.push({
+                ...initSolarArray,
+                id: lastPolygon.id,
+                area: lastPolygon.area,
+                azimuth: lastPolygon.azimuth,
+                shape: getPolygonPath(lastPolygon.polygon)
+            });
+        }
+
+        // remove old polygons from map
+        if (inputs.solarArrays.length) {
+            // if there are left over polygons, 
+            // polygons that aren't undefined, remove them
+            let remove = polygonsById.some(val => val !== undefined);
+            if (remove) {
+                polygonsById.forEach(p => p && p.polygon.setMap(null))
+                setPolygons(newPolygons);
+            }
+        }
+
         setInputs(prev => ({ ...prev, solarArrays: newSolarArrays }));
     }, [polygons]);
 
@@ -211,9 +246,9 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
             draggable: true
         });
 
-        if (!area || !azimuth) {
-            area = Number(getPolygonArea(polygon).toFixed(2));
-            azimuth = Number(getPolygonAzimuth(polygon).toFixed(2));
+        if (path && (!area || !azimuth)) {
+            area = Number(getPolygonArea(path).toFixed(2));
+            azimuth = Number(getPolygonAzimuth(path).toFixed(2));
         }
 
         setPolygons((prev) =>
