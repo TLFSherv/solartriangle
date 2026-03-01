@@ -95,8 +95,9 @@ export default function Calculator() {
 
     const handleSave = async () => {
         setStatus({ value: FormStatus.Pending, details: 'Started saving changes' });
+        console.log("hello");
         const result = await setCalculatorData(inputs);
-
+        console.log(result);
         if (result.error) {
             toast.error('Failed to save');
             if (result.error.zodError) {

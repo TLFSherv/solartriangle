@@ -323,6 +323,7 @@ export default function DrawingTool({ inputs, setInputs, activeId, setActiveId }
         polygonsRef.current?.forEach((p) => {
             if (p.id !== activeId)
                 p.polygon.setOptions({ strokeColor: "#1E1E1E" });
+            else p.polygon.setOptions({ strokeColor: "#F0662A" });
         })
     }
 

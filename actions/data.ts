@@ -17,6 +17,7 @@ import { RateLimiterRes } from "rate-limiter-flexible";
 import { getPVWattsData, getOpenMetoData } from "@/services/api";
 import { type CalculatorData } from "@/app/types/types";
 import { type UserSolarData } from "@/app/types/dto";
+import { $ZodError } from "zod/v4/core";
 
 const calculatorSchema = z.object({
     location: z.object({
@@ -301,6 +302,7 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
     try {
         // validate form data
         const validationResult = z.safeParse(calculatorSchema, input);
+
         if (!validationResult.success) {
             let zodError = z.flattenError(validationResult.error).fieldErrors;
             return { data: null, error: { message: "validation error", zodError } }
@@ -317,13 +319,13 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
 
         const currUserData = result.data;
         const currUserDataMap = new Map<number, UserSolarData>();
-        currUserData.forEach((data) => currUserDataMap.set(parseInt(data.solarArrays.name), data));
 
+        currUserData.forEach((data) => currUserDataMap.set(parseInt(data.solarArrays.id), data));
         for (const sa of input.solarArrays) {
             let currSolarArrayData = {};
-            let isUpdate = currUserDataMap.has(sa.id);
+            let isUpdateAction = currUserDataMap.has(sa.id);
 
-            if (isUpdate) {
+            if (isUpdateAction) {
                 const data = currUserDataMap.get(sa.id);
                 if (data) {
                     const { solarArrays, polygons, addresses } = data;
@@ -365,12 +367,14 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
             if (!polygonValidation.success ||
                 !solarArrayValidation.success ||
                 !addressValidation.success) {
+                console.log("hello")
                 throw new Error("Failed to save data")
             }
 
             let result;
             // update or insert data
-            if (isUpdate) {
+            if (isUpdateAction) {
+                // remove updated solarArrays so what's left over can be deleted
                 currUserDataMap.delete(sa.id);
                 result = await updateUserSolarData({ solarArray, polygon });
             }
@@ -378,10 +382,9 @@ export async function setCalculatorData(input: CalculatorData): Promise<DataResu
 
             if (result.error) throw Error(result.error.message);
         }
-
         // delete old data
-        for (const [key, _] of currUserDataMap) {
-            const result = await deleteUserSolarData(key.toString(), userId);
+        for (const [_, sa] of currUserDataMap) {
+            const result = await deleteUserSolarData(sa.solarArrays.id, userId);
             if (result.error) throw Error(result.error.message);
         }
         return { data: "Data saved successfully", error: null };

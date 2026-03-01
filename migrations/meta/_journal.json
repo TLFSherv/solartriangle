@@ -8,6 +8,13 @@
       "when": 1770554685489,
       "tag": "0000_blushing_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772390694273,
+      "tag": "0001_gray_rictor",
+      "breakpoints": true
     }
   ]
 }
