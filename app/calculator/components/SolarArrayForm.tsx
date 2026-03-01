@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react";
+import React from "react";
 import { CalculatorData } from "@/app/types/types"
 
 export default function SolarArrayForm({ inputs, setInputs, activeId, setActiveId }: {

@@ -10,7 +10,7 @@ export default function CalculatorLayout({ children }: {
                 Solar Calculator
             </h1>
             <p className="text-sm sm:text-lg text-[#F2F2F0]">
-                Enter your address in the address field below and select from the dropdown to show your home's roof on the map.
+                Enter your country and address in the fields below and select from the dropdown to show your home's roof on the map.
             </p>
             {children}
         </div>
