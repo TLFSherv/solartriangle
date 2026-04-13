@@ -11,3 +11,5 @@ Technical Highlights:
 - State Management: Used Next.js Middleware and Redis to create a seamless, high-performance flow for unauthenticated users.
 
 - Visual Insights: Chose D3.js specifically to handle the high-density data of solar irradiance, providing users with a "Heat Map" of their energy potential over a 12-month cycle.
+
+Here's a link to the live demo: https://solartriangle.vercel.app/ 
