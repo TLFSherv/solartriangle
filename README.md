@@ -1,5 +1,5 @@
 # Project: SolarTriangle (Solar Analysis Tool)
-An application for users interested in purchasing solar for their homes in the future to estimate and analyse the potential energy yield of the system.
+An application for future solar purchasers to estimate and analyse the potential energy yield of their future system.
 
 **The Challenge: Homeowners often struggle to estimate the ROI of solar panels because energy output depends on highly specific variables: roof size, orientation, local weather, and solar irradiance.**
 
@@ -20,6 +20,8 @@ An application for users interested in purchasing solar for their homes in the f
 https://solartriangle.vercel.app/ 
 
 ## Key Features
-- Google Maps API Integration : users are given autosuggestions when searching their address, as well as a view of their home in Google Maps.
-- Custom visualizations: power output, irradiance, and energy losses are intelligently displayed using custom graphs created using D3.js. The dashboard also includes a heat map to show solar statistics for each of the panels.
-- Accounts: users can create accounts to save their information.
+- Google Maps API Integration : Google Maps is integrated for users to view their home, as well as draw polygons on the map to represent their solar panels
+- Google Maps Address Autosuggestion API: users are given autosuggestions when searching for their address to make the search process efficient as well as reduce errors.
+- Custom visualizations: D3.js is utilised to create intuitive data visualisations
+- Accounts and data caching: users can navigate to other pages on the site without their inputs being lost; users can also create accounts to permanently save the results from the solar calculator
+
